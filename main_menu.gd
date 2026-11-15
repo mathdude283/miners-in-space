@@ -3,6 +3,7 @@ extends Node2D
 @onready var start_button: MarginContainer = $CanvasLayer/UI/StartButtonMargin
 @onready var mission_select: MarginContainer = $CanvasLayer/UI/MissionSelectButtonsMargin
 @onready var mission_conf: MarginContainer = $CanvasLayer/UI/MissionConfirmationMargin
+@onready var mission_conf_button: Button = $CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/HBoxContainer/AcceptMissionButton
 @onready var mission_summ: RichTextLabel = $CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/MissionSummary
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -15,11 +16,14 @@ func show_mission_summary():
 	mission_conf.show()
 	match PlayerData.scenario:
 		PlayerData.Scenario.MISSION_1:
-			mission_summ.text = "This is the Mission 1 Summary"
+			mission_summ.text = "Mission 1: Low-Earth Orbit Wildfire Detection"
+			mission_conf_button.show()
 		PlayerData.Scenario.MISSION_2:
-			mission_summ.text = "This is the Mission 2 Summary"
+			mission_summ.text = "Mission 2 coming soon."
+			mission_conf_button.hide()
 		PlayerData.Scenario.MISSION_3:
-			mission_summ.text = "This is the Mission 3 Summary"
+			mission_summ.text = "Mission 3 coming soon."
+			mission_conf_button.hide()
 		
 
 func hide_mission_summary():

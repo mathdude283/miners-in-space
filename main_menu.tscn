@@ -2,12 +2,8 @@
 
 [ext_resource type="Script" uid="uid://d2riekqjo0r1o" path="res://main_menu.gd" id="1_06t4h"]
 
-[node name="MainMenu" type="Node2D" unique_id=770708661 node_paths=PackedStringArray("new_game", "mission_select", "mission_conf", "mission_summ")]
+[node name="MainMenu" type="Node2D" unique_id=770708661]
 script = ExtResource("1_06t4h")
-new_game = NodePath("CanvasLayer/UI/StartButtonMargin")
-mission_select = NodePath("CanvasLayer/UI/MissionSelectButtonsMargin")
-mission_conf = NodePath("CanvasLayer/UI/MissionConfirmationMargin")
-mission_summ = NodePath("CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/MissionSummary")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=737573669]
 follow_viewport_enabled = true

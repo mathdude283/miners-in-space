@@ -1,3 +1,4 @@
+class_name ShipOptions
 extends MarginContainer
 
 const OPTION_CARD_SCENE = preload("res://config_option.tscn")
@@ -22,7 +23,7 @@ func _ready() -> void:
 			child.option_selected.connect(_on_card_selected.bind(child))
 
 # Dictionary is of form {id, image, descr, button_txt}
-func setup(cards: Array[Dictionary]):
+func setup(cards):
 	confirm_button.disabled = true
 	for choice in cards:
 		var card: ConfigOption = OPTION_CARD_SCENE.instantiate()
@@ -39,6 +40,7 @@ func clear_cards():
 	confirm_button.disabled = true
 
 
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
@@ -49,27 +51,11 @@ func _on_card_selected(selection_id, source_card: ConfigOption):
 		if child is ConfigOption:
 			child.enable_button()
 	source_card.disable_button()
+	current_selection_id = selection_id
 
 func _on_confirm_pressed():
 	selection_confirmed.emit(current_selection_id)
 
-func _spaceship_type_confirmed():
-	pass
-
-func _spaceship_type_back():
-	pass
-
-func _engine_type_confirmed():
-	pass
-
-func _engine_type_back():
-	pass
-
-func _fuel_amount_confirmed():
-	pass
-
-func _fuel_amount_back():
-	pass
 
 func _on_back_pressed():
 	back_button_pressed.emit()

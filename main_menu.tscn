@@ -26,7 +26,6 @@ grow_vertical = 2
 metadata/_edit_lock_ = true
 
 [node name="MissionSelectButtonsMargin" type="MarginContainer" parent="CanvasLayer/UI" unique_id=346764517]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -59,7 +58,6 @@ layout_mode = 2
 text = "Mission 3"
 
 [node name="StartButtonMargin" type="MarginContainer" parent="CanvasLayer/UI" unique_id=675369419]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

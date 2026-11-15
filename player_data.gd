@@ -4,11 +4,14 @@ extends Node
 enum ShipType { LOCALORBIT, LOCALLANDING, LONGORBIT, LONGLANDING }
 enum EngineType { SOLIDSMALL, SOLIDMEDIUM, SOLIDLARGE, LIQUIDSMALL, LIQUIDMEDIUM, LIQUIDLARGE }
 enum Scenario { MISSION_1, MISSION_2, MISSION_3 }
+enum MaxFuel { SMALL, MEDIUM, LARGE}
 enum Components { VISUALCAMERA, INFAREDCAMERA, RADARSAR, SPECTROMETER, MAGNETOMETER, PROBE, ALTIMETER }
 var fuel_amount = 0
+var ship_type = null
+var engine_type = null
 var scenario = null
 var mission_summaries = ["This is the mission 1 summary.", "This is the mission 2 summary.", "This is the mission 3 summary."]
-var mission_design_scene = preload("uid://b1boi15b3h4ip")
+var mission_design_scene = preload("res://mission_design.tscn")
 
 
 # Called when the node enters the scene tree for the first time.

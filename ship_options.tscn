@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://cq0liywkb22pv"]
+[gd_scene format=3 uid="uid://cq0liywkb22pv"]
 
 [ext_resource type="Theme" uid="uid://c58fket4g4c60" path="res://assets/themes/base_theme.tres" id="1_hs0gg"]
-[ext_resource type="Script" path="res://ship_options.gd" id="2_klqqu"]
+[ext_resource type="Script" uid="uid://fbd5hxe8xirf" path="res://ship_options.gd" id="2_klqqu"]
 
-[node name="Ship Options" type="MarginContainer"]
+[node name="Ship Options" type="MarginContainer" unique_id=1807445672]
 anchors_preset = -1
 anchor_left = 0.2
 anchor_top = 0.5
@@ -16,25 +16,25 @@ grow_vertical = 2
 theme = ExtResource("1_hs0gg")
 script = ExtResource("2_klqqu")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=644547207]
 layout_mode = 2
 
-[node name="OptionCards" type="HBoxContainer" parent="VBoxContainer"]
+[node name="OptionCards" type="HBoxContainer" parent="VBoxContainer" unique_id=962292399]
 layout_mode = 2
 theme = ExtResource("1_hs0gg")
 alignment = 1
 
-[node name="NavigationButtons" type="HBoxContainer" parent="VBoxContainer"]
+[node name="NavigationButtons" type="HBoxContainer" parent="VBoxContainer" unique_id=1227067912]
 layout_mode = 2
 alignment = 1
 
-[node name="BackButton" type="Button" parent="VBoxContainer/NavigationButtons"]
+[node name="BackButton" type="Button" parent="VBoxContainer/NavigationButtons" unique_id=1674380376]
 layout_mode = 2
 size_flags_horizontal = 2
 theme = ExtResource("1_hs0gg")
 text = "Back"
 
-[node name="ConfirmButton" type="Button" parent="VBoxContainer/NavigationButtons"]
+[node name="ConfirmButton" type="Button" parent="VBoxContainer/NavigationButtons" unique_id=2128860174]
 layout_mode = 2
 size_flags_horizontal = 10
 text = "Confirm"

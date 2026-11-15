@@ -56,6 +56,12 @@ func setup(dict: Dictionary):
 func _on_button_pressed():
 	option_selected.emit(option_id)
 
+func disable_button():
+	button.disabled = true
+
+func enable_button():
+	button.disabled = false
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:

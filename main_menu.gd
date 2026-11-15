@@ -1,12 +1,12 @@
 extends Node2D
 
-@export var new_game: MarginContainer
-@export var mission_select: MarginContainer
-@export var mission_conf: MarginContainer
-@export var mission_summ: RichTextLabel
+@onready var start_button: MarginContainer = $CanvasLayer/UI/StartButtonMargin
+@onready var mission_select: MarginContainer = $CanvasLayer/UI/MissionSelectButtonsMargin
+@onready var mission_conf: MarginContainer = $CanvasLayer/UI/MissionConfirmationMargin
+@onready var mission_summ: RichTextLabel = $CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/MissionSummary
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	new_game.show()
+	start_button.show()
 	mission_select.hide()
 	mission_conf.hide()
 
@@ -26,7 +26,7 @@ func hide_mission_summary():
 	mission_conf.hide()
 
 func _on_start_button_pressed() -> void:
-	new_game.hide()
+	start_button.hide()
 	mission_select.show()
 
 

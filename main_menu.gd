@@ -3,6 +3,7 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	$CanvasLayer/UI/StartButtonMargin.show()
 	hide_mission_buttons()
 	hide_mission_summary()
 

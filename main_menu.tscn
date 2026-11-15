@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://c3mh7uidagdig"]
+
+[ext_resource type="Script" uid="uid://d2riekqjo0r1o" path="res://main_menu.gd" id="1_06t4h"]
+
+[node name="MainMenu" type="Node2D" unique_id=770708661]
+script = ExtResource("1_06t4h")
+
+[node name="NewGameButton" type="Button" parent="." unique_id=810935334]
+offset_left = 376.0
+offset_top = 281.0
+offset_right = 456.0
+offset_bottom = 324.0
+text = "New Game"
+
+[node name="Mission1" type="Button" parent="." unique_id=355609225]
+offset_left = 303.0
+offset_top = 481.0
+offset_right = 381.0
+offset_bottom = 521.0
+text = "Mission 1"
+
+[node name="Mission2" type="Button" parent="." unique_id=1480056253]
+offset_left = 477.0
+offset_top = 483.0
+offset_right = 556.0
+offset_bottom = 511.0
+text = "Mission 2"
+
+[node name="Mission3" type="Button" parent="." unique_id=1278344416]
+offset_left = 658.0
+offset_top = 498.0
+offset_right = 797.0
+offset_bottom = 544.0
+text = "Mission 3"
+
+[node name="MissionSummary" type="RichTextLabel" parent="." unique_id=347145505]
+offset_left = 329.0
+offset_top = 121.0
+offset_right = 779.0
+offset_bottom = 362.0
+text = "Mission Description"
+
+[node name="AcceptMissionButton" type="Button" parent="MissionSummary" unique_id=1773614484]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 96.0
+offset_right = 148.0
+offset_bottom = 168.0
+text = "Accept"
+
+[node name="BackButton" type="Button" parent="MissionSummary" unique_id=893433771]
+layout_mode = 0
+offset_left = 219.0
+offset_top = 113.0
+offset_right = 375.0
+offset_bottom = 193.0
+text = "Back"
+
+[connection signal="pressed" from="NewGameButton" to="." method="_on_new_game_button_pressed"]
+[connection signal="pressed" from="Mission1" to="." method="_on_mission_1_pressed"]
+[connection signal="pressed" from="Mission2" to="." method="_on_mission_2_pressed"]
+[connection signal="pressed" from="Mission3" to="." method="_on_mission_3_pressed"]
+[connection signal="pressed" from="MissionSummary/AcceptMissionButton" to="." method="_on_accept_mission_button_pressed"]
+[connection signal="pressed" from="MissionSummary/BackButton" to="." method="_on_back_button_pressed"]

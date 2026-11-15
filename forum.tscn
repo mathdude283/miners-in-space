@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c4seiqdoyncsw"]
+
+[ext_resource type="Script" uid="uid://c3yv6s8uinx17" path="res://forum.gd" id="1_pcb8i"]
+
+[node name="Forum" type="Node2D" unique_id=47568375]
+script = ExtResource("1_pcb8i")

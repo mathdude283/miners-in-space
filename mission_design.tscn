@@ -1,10 +1,39 @@
 [gd_scene format=3 uid="uid://b1boi15b3h4ip"]
 
-[node name="Node2D" type="Node2D" unique_id=751122485]
+[ext_resource type="Script" uid="uid://c7w3swqbjclr" path="res://mission_design.gd" id="1_qoiaj"]
+[ext_resource type="PackedScene" uid="uid://cq0liywkb22pv" path="res://ship_options.tscn" id="2_nt5pa"]
 
-[node name="Label" type="Label" parent="." unique_id=2094831999]
-offset_left = 490.0
-offset_top = 240.0
-offset_right = 745.0
-offset_bottom = 420.0
-text = "Mission Planner: "
+[node name="MissionDesign" type="Node2D" unique_id=751122485]
+script = ExtResource("1_qoiaj")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1218058071]
+
+[node name="UI" type="Control" parent="CanvasLayer" unique_id=214234840]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MissionDesignHeader" type="MarginContainer" parent="CanvasLayer/UI" unique_id=1284067672]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.2
+anchor_right = 0.5
+anchor_bottom = 0.2
+offset_left = -58.0
+offset_right = 58.0
+offset_bottom = 23.0
+grow_horizontal = 2
+
+[node name="Title" type="RichTextLabel" parent="CanvasLayer/UI/MissionDesignHeader" unique_id=2145777607]
+layout_mode = 2
+text = "Mission Design"
+fit_content = true
+autowrap_mode = 0
+
+[node name="Ship Options" parent="CanvasLayer/UI" unique_id=953608755 instance=ExtResource("2_nt5pa")]
+layout_mode = 0
+anchors_preset = 0

@@ -10,9 +10,6 @@ func _ready() -> void:
 	mission_select.hide()
 	mission_conf.hide()
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
 
 func show_mission_summary():
 	mission_conf.show()

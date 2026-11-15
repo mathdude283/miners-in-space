@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c1fvw3dnmhrf0"]
+
+[ext_resource type="Script" uid="uid://buiw4fiay1ert" path="res://flight.gd" id="1_72is4"]
+
+[node name="Flight" type="Node2D" unique_id=1439421788]
+script = ExtResource("1_72is4")

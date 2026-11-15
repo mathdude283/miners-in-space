@@ -8,7 +8,7 @@ func _ready() -> void:
 	var option_menu = CARD_SCENE.instantiate()
 	option_menu.hide()
 	ui.add_child(option_menu)
-	# imgs = [preload()]
+	imgs = [preload("res://assets/imgs/MissionDesign/LocalLanding.png")]
 	
 	
 

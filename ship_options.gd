@@ -53,5 +53,23 @@ func _on_card_selected(selection_id, source_card: ConfigOption):
 func _on_confirm_pressed():
 	selection_confirmed.emit(current_selection_id)
 
+func _spaceship_type_confirmed():
+	pass
+
+func _spaceship_type_back():
+	pass
+
+func _engine_type_confirmed():
+	pass
+
+func _engine_type_back():
+	pass
+
+func _fuel_amount_confirmed():
+	pass
+
+func _fuel_amount_back():
+	pass
+
 func _on_back_pressed():
 	back_button_pressed.emit()

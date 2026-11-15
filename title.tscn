@@ -1,0 +1,301 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://title.gd" id="1_title"]
+[ext_resource type="Script" path="res://hud_frame.gd" id="2_hud"]
+[ext_resource type="Theme" path="res://assets/themes/moonbound_theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/moon_bg.png" id="4_moon"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/logo.png" id="5_logo"]
+[ext_resource type="Shader" path="res://assets/shaders/crt_overlay.gdshader" id="6_crt"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/icon_info.png" id="7_info"]
+[ext_resource type="Script" path="res://sky_hud.gd" id="8_sky"]
+
+[sub_resource type="Gradient" id="Gradient_star_ramp"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_star_dot"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_star"]
+gradient = SubResource("Gradient_star_dot")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_left_shade"]
+offsets = PackedFloat32Array(0, 0.42, 0.78)
+colors = PackedColorArray(0.027, 0.043, 0.133, 0.94, 0.027, 0.043, 0.133, 0.68, 0.027, 0.043, 0.133, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_left_shade"]
+gradient = SubResource("Gradient_left_shade")
+width = 512
+height = 4
+fill_from = Vector2(0, 0)
+fill_to = Vector2(1, 0)
+
+[sub_resource type="Gradient" id="Gradient_glow"]
+colors = PackedColorArray(0.09, 0.21, 0.8, 0.34, 0.09, 0.21, 0.8, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
+gradient = SubResource("Gradient_glow")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
+blend_mode = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("6_crt")
+
+[node name="Title" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_theme")
+script = ExtResource("1_title")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_moon")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="SkyHud" type="Control" parent="Background"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("8_sky")
+
+[node name="Stars" type="CPUParticles2D" parent="."]
+position = Vector2(960, 540)
+amount = 110
+texture = SubResource("GradientTexture2D_star")
+lifetime = 6.0
+preprocess = 6.0
+randomness = 1.0
+local_coords = true
+emission_shape = 3
+emission_rect_extents = Vector2(960, 540)
+direction = Vector2(0, 0)
+spread = 0.0
+gravity = Vector2(0, 0)
+scale_amount_min = 0.03
+scale_amount_max = 0.14
+color = Color(0.85, 0.92, 1, 1)
+color_ramp = SubResource("Gradient_star_ramp")
+
+[node name="LeftShade" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_left_shade")
+expand_mode = 1
+
+[node name="LogoGlow" type="TextureRect" parent="."]
+material = SubResource("CanvasItemMaterial_add")
+layout_mode = 0
+offset_left = -60.0
+offset_top = 40.0
+offset_right = 880.0
+offset_bottom = 700.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_glow")
+expand_mode = 1
+
+[node name="Crt" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_crt")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HudFrame" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_hud")
+inset = 28.0
+arm = 46.0
+ornaments = false
+
+[node name="Content" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 150
+theme_override_constants/margin_top = 120
+theme_override_constants/margin_right = 960
+theme_override_constants/margin_bottom = 130
+
+[node name="Column" type="VBoxContainer" parent="Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 26
+alignment = 1
+
+[node name="Logo" type="TextureRect" parent="Content/Column"]
+custom_minimum_size = Vector2(700, 212)
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+texture = ExtResource("5_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Stages" type="HBoxContainer" parent="Content/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Spacer" type="Control" parent="Content/Column"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="StartButton" type="Button" parent="Content/Column"]
+custom_minimum_size = Vector2(380, 150)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_type_variation = &"PrimaryButton"
+text = "START"
+
+[node name="Hint" type="Label" parent="Content/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"MonoLabel"
+theme_override_colors/font_color = Color(0.949, 0.961, 1, 0.6)
+text = "CLICK OR PRESS ENTER"
+
+[node name="BottomBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 90.0
+offset_top = -118.0
+offset_right = -90.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 2
+
+[node name="Credit" type="Label" parent="BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+mouse_filter = 2
+theme_type_variation = &"MonoLabel"
+theme_override_colors/font_color = Color(0.949, 0.961, 1, 0.6)
+text = "NASA SPACE APPS CHALLENGE 2026"
+vertical_alignment = 1
+
+[node name="CreditsButton" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_type_variation = &"GhostButton"
+text = "Credits"
+icon = ExtResource("7_info")
+
+[node name="CreditsLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="CreditsLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.02, 0.07, 0.78)
+
+[node name="Center" type="CenterContainer" parent="CreditsLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="CreditsLayer/Center"]
+custom_minimum_size = Vector2(900, 0)
+layout_mode = 2
+
+[node name="Column" type="VBoxContainer" parent="CreditsLayer/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="Heading" type="Label" parent="CreditsLayer/Center/Panel/Column"]
+layout_mode = 2
+theme_type_variation = &"DisplayLabel"
+text = "AI DISCLOSURE"
+
+[node name="Body" type="RichTextLabel" parent="CreditsLayer/Center/Panel/Column"]
+layout_mode = 2
+theme_override_colors/default_color = Color(0.949, 0.961, 1, 0.92)
+theme_override_font_sizes/normal_font_size = 22
+bbcode_enabled = true
+text = "[color=#c8ff36]AI-generated artwork.[/color] Spacecraft rooms, hull parts, and interface concepts were created with OpenAI image generation using the team's Y2K direction. Codex assisted with asset preparation, research summaries, and design documentation. See the AI disclosure register for individual files.
+
+[color=#c8ff36]Game numbers.[/color] Weight, power and budget values are game units, not NASA data.
+
+[color=#c8ff36]NASA.[/color] Each real NASA photograph or recording is credited separately with its original source."
+fit_content = true
+
+[node name="CloseButton" type="Button" parent="CreditsLayer/Center/Panel/Column"]
+custom_minimum_size = Vector2(250, 104)
+layout_mode = 2
+size_flags_horizontal = 8
+theme_type_variation = &"PrimaryButton"
+theme_override_font_sizes/font_size = 34
+text = "GOT IT"
+
+[node name="Fade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.027, 0.043, 0.133, 1)

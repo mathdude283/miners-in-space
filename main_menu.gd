@@ -54,4 +54,4 @@ func _on_back_button_pressed() -> void:
 
 
 func _on_accept_mission_button_pressed() -> void:
-	get_tree().change_scene_to_packed(PlayerData.mission_design_scene)
+	get_tree().change_scene_to_file("res://build_screen.tscn")

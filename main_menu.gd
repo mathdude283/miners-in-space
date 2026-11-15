@@ -11,31 +11,27 @@ func _process(delta: float) -> void:
 	pass
 
 func hide_mission_buttons():
-	$Mission1.hide()
-	$Mission2.hide()
-	$Mission3.hide()
+	$CanvasLayer/UI/MissionSelectButtonsMargin.hide()
 
 func show_mission_buttons():
-	$Mission1.show()
-	$Mission2.show()
-	$Mission3.show()
+	$CanvasLayer/UI/MissionSelectButtonsMargin.show()
 
 func show_mission_summary():
-	$MissionSummary.show()
+	$CanvasLayer/UI/MissionConfirmationMargin.show()
 	match PlayerData.scenario:
 		PlayerData.Scenario.MISSION_1:
-			$MissionSummary.text = "This is the Mission 1 Summary"
+			$CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/MissionSummary.text = "This is the Mission 1 Summary"
 		PlayerData.Scenario.MISSION_2:
-			$MissionSummary.text = "This is the Mission 2 Summary"
+			$CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/MissionSummary.text = "This is the Mission 2 Summary"
 		PlayerData.Scenario.MISSION_3:
-			$MissionSummary.text = "This is the Mission 3 Summary"
+			$CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/MissionSummary.text = "This is the Mission 3 Summary"
 		
 
 func hide_mission_summary():
-	$MissionSummary.hide()
+	$CanvasLayer/UI/MissionConfirmationMargin.hide()
 
-func _on_new_game_button_pressed() -> void:
-	$NewGameButton.hide()
+func _on_start_button_pressed() -> void:
+	$CanvasLayer/UI/StartButtonMargin.hide()
 	show_mission_buttons()
 
 
@@ -64,3 +60,8 @@ func _on_back_button_pressed() -> void:
 
 func _on_accept_mission_button_pressed() -> void:
 	get_tree().change_scene_to_packed(PlayerData.mission_design_scene)
+
+
+func _on_mission_select_button_pressed() -> void:
+	$CanvasLayer/MissionSelectButton.hide()
+	show_mission_buttons()

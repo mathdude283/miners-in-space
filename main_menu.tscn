@@ -5,60 +5,112 @@
 [node name="MainMenu" type="Node2D" unique_id=770708661]
 script = ExtResource("1_06t4h")
 
-[node name="NewGameButton" type="Button" parent="." unique_id=810935334]
-offset_left = 376.0
-offset_top = 281.0
-offset_right = 456.0
-offset_bottom = 324.0
-text = "New Game"
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=737573669]
+follow_viewport_enabled = true
 
-[node name="Mission1" type="Button" parent="." unique_id=355609225]
-offset_left = 303.0
-offset_top = 481.0
-offset_right = 381.0
-offset_bottom = 521.0
+[node name="UI" type="Control" parent="CanvasLayer" unique_id=224208688]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 3.0
+offset_right = 1.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_lock_ = true
+
+[node name="MissionSelectButtonsMargin" type="MarginContainer" parent="CanvasLayer/UI" unique_id=346764517]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -221.5
+offset_top = -15.5
+offset_right = 221.5
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/UI/MissionSelectButtonsMargin" unique_id=2050608594]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 100
+alignment = 1
+
+[node name="Mission1" type="Button" parent="CanvasLayer/UI/MissionSelectButtonsMargin/HBoxContainer" unique_id=355609225]
+layout_mode = 2
 text = "Mission 1"
 
-[node name="Mission2" type="Button" parent="." unique_id=1480056253]
-offset_left = 477.0
-offset_top = 483.0
-offset_right = 556.0
-offset_bottom = 511.0
+[node name="Mission2" type="Button" parent="CanvasLayer/UI/MissionSelectButtonsMargin/HBoxContainer" unique_id=1480056253]
+layout_mode = 2
 text = "Mission 2"
 
-[node name="Mission3" type="Button" parent="." unique_id=1278344416]
-offset_left = 658.0
-offset_top = 498.0
-offset_right = 797.0
-offset_bottom = 544.0
+[node name="Mission3" type="Button" parent="CanvasLayer/UI/MissionSelectButtonsMargin/HBoxContainer" unique_id=1278344416]
+layout_mode = 2
 text = "Mission 3"
 
-[node name="MissionSummary" type="RichTextLabel" parent="." unique_id=347145505]
-offset_left = 329.0
-offset_top = 121.0
-offset_right = 779.0
-offset_bottom = 362.0
-text = "Mission Description"
+[node name="StartButtonMargin" type="MarginContainer" parent="CanvasLayer/UI" unique_id=675369419]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -20.0
+offset_right = 59.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="AcceptMissionButton" type="Button" parent="MissionSummary" unique_id=1773614484]
-layout_mode = 0
-offset_left = 5.0
-offset_top = 96.0
-offset_right = 148.0
-offset_bottom = 168.0
+[node name="StartButton" type="Button" parent="CanvasLayer/UI/StartButtonMargin" unique_id=810935334]
+layout_mode = 2
+text = "Mission Select"
+
+[node name="MissionConfirmationMargin" type="MarginContainer" parent="CanvasLayer/UI" unique_id=525423963]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -76.5
+offset_top = -29.0
+offset_right = 76.5
+offset_bottom = 29.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/UI/MissionConfirmationMargin" unique_id=385973713]
+layout_mode = 2
+alignment = 1
+
+[node name="MissionSummary" type="RichTextLabel" parent="CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer" unique_id=347145505]
+layout_mode = 2
+text = "Mission Description"
+fit_content = true
+autowrap_mode = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer" unique_id=1242362880]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="AcceptMissionButton" type="Button" parent="CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/HBoxContainer" unique_id=1773614484]
+layout_mode = 2
 text = "Accept"
 
-[node name="BackButton" type="Button" parent="MissionSummary" unique_id=893433771]
-layout_mode = 0
-offset_left = 219.0
-offset_top = 113.0
-offset_right = 375.0
-offset_bottom = 193.0
+[node name="BackButton" type="Button" parent="CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/HBoxContainer" unique_id=893433771]
+layout_mode = 2
 text = "Back"
 
-[connection signal="pressed" from="NewGameButton" to="." method="_on_new_game_button_pressed"]
-[connection signal="pressed" from="Mission1" to="." method="_on_mission_1_pressed"]
-[connection signal="pressed" from="Mission2" to="." method="_on_mission_2_pressed"]
-[connection signal="pressed" from="Mission3" to="." method="_on_mission_3_pressed"]
-[connection signal="pressed" from="MissionSummary/AcceptMissionButton" to="." method="_on_accept_mission_button_pressed"]
-[connection signal="pressed" from="MissionSummary/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/MissionSelectButtonsMargin/HBoxContainer/Mission1" to="." method="_on_mission_1_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/MissionSelectButtonsMargin/HBoxContainer/Mission2" to="." method="_on_mission_2_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/MissionSelectButtonsMargin/HBoxContainer/Mission3" to="." method="_on_mission_3_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/StartButtonMargin/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/HBoxContainer/AcceptMissionButton" to="." method="_on_accept_mission_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/HBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

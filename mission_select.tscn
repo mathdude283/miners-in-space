@@ -1,0 +1,218 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://mission_select.gd" id="1_sel"]
+[ext_resource type="Script" path="res://hud_frame.gd" id="2_hud"]
+[ext_resource type="Script" path="res://stage_tracker.gd" id="3_track"]
+[ext_resource type="Theme" path="res://assets/themes/moonbound_theme.tres" id="4_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/select/bg_earth_orbit.png" id="5_bg"]
+[ext_resource type="Texture2D" path="res://assets/ui/select/banner_mission_select.png" id="6_banner"]
+[ext_resource type="Texture2D" path="res://assets/ui/button_back.png" id="7_back"]
+[ext_resource type="Shader" path="res://assets/shaders/crt_overlay.gdshader" id="8_crt"]
+
+[sub_resource type="Gradient" id="Gradient_star_ramp"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_star_dot"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_star"]
+gradient = SubResource("Gradient_star_dot")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_shade"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.027, 0.043, 0.133, 0.78, 0.027, 0.043, 0.133, 0.58, 0.027, 0.043, 0.133, 0.82)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_shade"]
+gradient = SubResource("Gradient_shade")
+width = 4
+height = 512
+fill_from = Vector2(0, 0)
+fill_to = Vector2(0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("8_crt")
+
+[node name="MissionSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("4_theme")
+script = ExtResource("1_sel")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Stars" type="CPUParticles2D" parent="."]
+position = Vector2(960, 540)
+amount = 90
+texture = SubResource("GradientTexture2D_star")
+lifetime = 6.0
+preprocess = 6.0
+randomness = 1.0
+emission_shape = 3
+emission_rect_extents = Vector2(960, 540)
+direction = Vector2(0, 0)
+spread = 0.0
+gravity = Vector2(0, 0)
+scale_amount_min = 0.03
+scale_amount_max = 0.12
+color = Color(0.85, 0.92, 1, 1)
+color_ramp = SubResource("Gradient_star_ramp")
+
+[node name="Shade" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_shade")
+expand_mode = 1
+
+[node name="Crt" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_crt")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HudFrame" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_hud")
+inset = 28.0
+arm = 46.0
+show_ruler = false
+
+[node name="Safe" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 90
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 90
+theme_override_constants/margin_bottom = 64
+
+[node name="Column" type="VBoxContainer" parent="Safe"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="Control" parent="Safe/Column"]
+custom_minimum_size = Vector2(0, 205)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Banner" type="TextureRect" parent="Safe/Column/Header"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -350.0
+offset_top = -72.0
+offset_right = 350.0
+offset_bottom = 278.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("6_banner")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Stages" type="HBoxContainer" parent="Safe/Column/Header"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_top = 24.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("3_track")
+
+[node name="Prompt" type="Label" parent="Safe/Column"]
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"MonoLabel"
+theme_override_colors/font_color = Color(0.949, 0.961, 1, 0.75)
+theme_override_font_sizes/font_size = 18
+text = "ONE CONTRACT IS OPEN IN THIS VERSION  -  TWO ARE LOCKED"
+horizontal_alignment = 1
+
+[node name="Cards" type="HBoxContainer" parent="Safe/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="Footer" type="MarginContainer" parent="Safe/Column"]
+layout_mode = 2
+theme_override_constants/margin_left = 123
+theme_override_constants/margin_right = 123
+
+[node name="Row" type="HBoxContainer" parent="Safe/Column/Footer"]
+layout_mode = 2
+
+[node name="BackButton" type="TextureButton" parent="Safe/Column/Footer/Row"]
+custom_minimum_size = Vector2(200, 92)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("7_back")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Hint" type="Label" parent="Safe/Column/Footer/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_type_variation = &"MonoLabel"
+theme_override_font_sizes/font_size = 20
+text = "PICK A CONTRACT TO CONTINUE"
+horizontal_alignment = 1
+
+[node name="AcceptButton" type="Button" parent="Safe/Column/Footer/Row"]
+custom_minimum_size = Vector2(340, 130)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"PrimaryButton"
+text = "ACCEPT"
+
+[node name="Fade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.027, 0.043, 0.133, 1)

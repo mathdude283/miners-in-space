@@ -1,0 +1,107 @@
+class_name Missions
+## Contract data for the mission select screen. Everything the player reads comes from here, so the
+## team can edit wording without touching the layout.
+##
+## "id" matches PlayerData.Scenario (0 = MISSION_1, 1 = MISSION_2, 2 = MISSION_3).
+## Wording follows the team's design brief (Drive: 03 Design references / moonbound-app-design.md).
+## Duration, funding and difficulty are not in the brief yet, so they are not shown. Add them here
+## once the team decides, then show them on the card.
+## Contracts 01 and 02 are built; 03 stays locked until it is.
+
+const LIST: Array[Dictionary] = [
+	{
+		"id": 0,
+		"tag": "CONTRACT 01",
+		"diagram": "orientale",
+		"name": "ORIENTALE",
+		"objective": "Photograph the Orientale basin with a wide shot and a close-up. Tag which picture shows WHERE it is and which shows WHAT THE SURFACE IS LIKE, then send them home.",
+		"evidence": ["WIDE IMAGE", "DETAIL TILE", "TAGGED CORRECTLY"],
+		"available": true,
+		## What the ship must have, beyond the basics. lens: "any" or "both". lab: a Science Lab is required.
+		"needs": {"lens": "any", "lab": false},
+		## What the player is shown and photographs.
+		"target": {"name": "Orientale", "desc": "three-ring basin", "noun": "basin"},
+		## GAME numbers: minutes of operations and power units to spend in flight.
+		"budget": {"time": 40.0, "power": 20.0},
+		"objectives": [
+			{"id": "photo", "label": "Photograph the basin (wide, close-up)"},
+			{"id": "tag", "label": "Tag WHERE and WHAT IT IS LIKE"},
+			{"id": "send", "label": "Send the photos to Earth"},
+		],
+	},
+	{
+		"id": 1,
+		"tag": "CONTRACT 02",
+		"diagram": "glushko_ohm",
+		"name": "GLUSHKO AND OHM",
+		"objective": "Compare two craters under different light. Re-observe Glushko, or observe Ohm to compare crater rays.",
+		"evidence": ["A/B COMPARISON", "LIGHT DIRECTION"],
+		"available": true,
+		"needs": {"lens": "any", "lab": true},
+		"target": {"name": "Glushko and Ohm", "desc": "crater", "noun": "crater", "kind": "crater"},
+		## Two observations, a comparison in the Science Lab (marked by CraterScience), and random events the player decides.
+		"science": "crater",
+		"events": 2,
+		"budget": {"time": 60.0, "power": 26.0},
+		"objectives": [
+			{"id": "first", "label": "Make the first observation"},
+			{"id": "second", "label": "Make the second observation"},
+			{"id": "compare", "label": "Compare the two photos in the Science Lab"},
+			{"id": "send", "label": "Send the evidence to Earth"},
+		],
+		## The brief: re-observe Glushko in more comparable conditions, or observe Ohm to compare crater rays.
+		"branch": {"id": "second", "prompt": "For the second observation:", "choices": [
+			{"id": "reobserve", "label": "Re-observe Glushko in more comparable light"},
+			{"id": "ohm", "label": "Observe Ohm to compare crater rays"},
+		]},
+	},
+	{
+		"id": 2,
+		"tag": "CONTRACT 03",
+		"diagram": "impact_watch",
+		"name": "IMPACT WATCH",
+		"objective": "Log sightings on a private timestamped grid, then compare logs. A sighting stays tentative until it is corroborated.",
+		"evidence": ["TIMESTAMPED LOG", "LOG COMPARISON"],
+		"available": false,
+		"needs": {"lens": "any", "lab": false},
+		"target": {"name": "Impact Watch", "desc": "dark region", "noun": "region"},
+		"budget": {"time": 50.0, "power": 22.0},
+		"objectives": [{"id": "log", "label": "Log what you see"}],
+	},
+]
+
+
+## What this contract needs from the ship, with a yes or no for each. s is the ship, or null if there is none yet.
+## Every contract needs a window to see through, a lens, and a radio; some need more (needs in the data).
+static func requirements(id: int, s: BuildState) -> Array[Dictionary]:
+	var needs: Dictionary = get_mission(id).get("needs", {})
+	var out: Array[Dictionary] = []
+	out.append({"label": "Observation Bay (a window)", "ok": s != null and s.has_room("observation"), "fix": "an Observation Bay"})
+	if String(needs.get("lens", "any")) == "both":
+		out.append({"label": "Both lenses", "ok": s != null and s.wide and s.close, "fix": "both lenses"})
+	else:
+		out.append({"label": "A lens", "ok": s != null and (s.wide or s.close), "fix": "a lens"})
+	out.append({"label": "Communications", "ok": s != null and s.has_room("communications"), "fix": "a Communications room"})
+	if bool(needs.get("lab", false)):
+		out.append({"label": "Science Lab", "ok": s != null and s.has_room("science-lab"), "fix": "a Science Lab"})
+	return out
+
+
+## What later contracts will ask of the ship, as plain lines. The ship is locked after the first contract, so the
+## Build screen tells the player now. Each is {text, ok} where ok says whether this ship already has it.
+static func later_needs(id: int, s: BuildState) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for m in LIST:
+		if int(m["id"]) <= id or not bool(m.get("available", false)):
+			continue
+		var needs: Dictionary = m.get("needs", {})
+		if bool(needs.get("lab", false)):
+			out.append({"text": "Contract %02d needs a Science Lab" % (int(m["id"]) + 1), "ok": s != null and s.has_room("science-lab")})
+		if String(needs.get("lens", "any")) == "both":
+			out.append({"text": "Contract %02d needs both lenses" % (int(m["id"]) + 1), "ok": s != null and s.wide and s.close})
+	return out
+
+
+## The contract with this id (the list index). Out-of-range ids give the first contract.
+static func get_mission(id: int) -> Dictionary:
+	return LIST[clampi(id, 0, LIST.size() - 1)]

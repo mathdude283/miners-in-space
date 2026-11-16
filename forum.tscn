@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c3yv6s8uinx17" path="res://forum.gd" id="1_pcb8i"]
 [ext_resource type="ButtonGroup" uid="uid://dedulw5w7josb" path="res://assets/ButtonGroups/Q1Answers.tres" id="2_kplmg"]
+[ext_resource type="Theme" uid="uid://c58fket4g4c60" path="res://assets/themes/base_theme.tres" id="2_tavjp"]
 [ext_resource type="ButtonGroup" uid="uid://b5cfa5wrngmbl" path="res://assets/ButtonGroups/Q2Answers.tres" id="3_x3hvf"]
 [ext_resource type="ButtonGroup" uid="uid://bul1dl8pwefvm" path="res://assets/ButtonGroups/Q3Answers.tres" id="4_tavjp"]
 [ext_resource type="ButtonGroup" uid="uid://gh8ex45sc0ig" path="res://assets/ButtonGroups/Q4Answers.tres" id="5_334ht"]
@@ -21,6 +22,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_tavjp")
 
 [node name="Questions" type="MarginContainer" parent="CanvasLayer/UI" unique_id=421722413]
 visible = false

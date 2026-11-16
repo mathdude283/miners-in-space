@@ -23,12 +23,21 @@ theme = ExtResource("1_fm2vu")
 script = ExtResource("1_7paa8")
 card_description = "[center]Placeholder Text[center]"
 
-[node name="TextureRect" type="TextureRect" parent="." unique_id=857549672]
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1686345859]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer" unique_id=857549672]
 layout_mode = 2
 size_flags_vertical = 3
 texture = ExtResource("3_qbbe1")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="ColorRect" type="ColorRect" parent="PanelContainer" unique_id=1615843162]
+z_index = -1
+layout_mode = 2
+color = Color(0.6, 0.6, 0.6, 0.41568628)
 
 [node name="RichTextLabel" type="RichTextLabel" parent="." unique_id=192250451]
 layout_mode = 2

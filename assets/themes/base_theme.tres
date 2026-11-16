@@ -1,7 +1,7 @@
 [gd_resource type="Theme" format=3 uid="uid://c58fket4g4c60"]
 
 [ext_resource type="StyleBox" uid="uid://dr1yq8lxj6dx0" path="res://assets/themes/base_style_box.tres" id="1_7mchg"]
-[ext_resource type="StyleBox" uid="uid://bdti6a553i3ua" path="res://assets/themes/base_style_box_empty.tres" id="2_ty7gv"]
+[ext_resource type="StyleBox" uid="uid://bnphbeeb7cpfy" path="res://assets/themes/transparent_style_box_flat.tres" id="2_ty7gv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ty7gv"]
 content_margin_left = 5.0
@@ -13,4 +13,5 @@ bg_color = Color(0.321728, 0.321728, 0.321728, 1)
 [resource]
 Button/styles/disabled = SubResource("StyleBoxFlat_ty7gv")
 Button/styles/normal = ExtResource("1_7mchg")
+Label/styles/normal = ExtResource("2_ty7gv")
 RichTextLabel/styles/normal = ExtResource("2_ty7gv")

@@ -22,6 +22,8 @@ func _ready() -> void:
 	# Scene selective reset
 	questions.show()
 	evaluation.hide()
+	var background = PlayerData.background.instantiate()
+	add_child(background)
 	submit.disabled = true
 	# Question Generation
 	question1.text = generate_question(PlayerData.MissionConfig.SHIPTYPE, PlayerData.ship_type)
@@ -198,8 +200,52 @@ func generate_question(configType, topic) -> String:
 			Q5Answers.get_children()[3].text = "8 Gb"
 			return (
 			"""
-			What is the speed at which 
-			the Infared Camera transmits data?
+			Ello
+			""")
+		elif topic == PlayerData.Instruments.RADARSAR:
+			Q5Answers.get_children()[0].text = "bananana"
+			Q5Answers.get_children()[1].text = "banana"
+			Q5Answers.get_children()[2].text = "nanana"
+			Q5Answers.get_children()[3].text = "naaaa"
+			return (
+			"""
+			Ello
+			""")
+		elif topic == PlayerData.Instruments.SPECTROMETER:
+			Q5Answers.get_children()[0].text = "bananana"
+			Q5Answers.get_children()[1].text = "banana"
+			Q5Answers.get_children()[2].text = "nanana"
+			Q5Answers.get_children()[3].text = "naaaa"
+			return (
+			"""
+			Ello
+			""")
+		elif topic == PlayerData.Instruments.MAGNETOMETER:
+			Q5Answers.get_children()[0].text = "bananana"
+			Q5Answers.get_children()[1].text = "banana"
+			Q5Answers.get_children()[2].text = "nanana"
+			Q5Answers.get_children()[3].text = "naaaa"
+			return (
+			"""
+			Ello
+			""")
+		elif topic == PlayerData.Instruments.PROBE:
+			Q5Answers.get_children()[0].text = "bananana"
+			Q5Answers.get_children()[1].text = "banana"
+			Q5Answers.get_children()[2].text = "nanana"
+			Q5Answers.get_children()[3].text = "naaaa"
+			return (
+			"""
+			Ello
+			""")
+		elif topic == PlayerData.Instruments.ALTIMETER:
+			Q5Answers.get_children()[0].text = "bananana"
+			Q5Answers.get_children()[1].text = "banana"
+			Q5Answers.get_children()[2].text = "nanana"
+			Q5Answers.get_children()[3].text = "naaaa"
+			return (
+			"""
+			Ello
 			""")
 	return "No Question"
 # Called every frame. 'delta' is the elapsed time since the previous frame.

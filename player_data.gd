@@ -69,6 +69,25 @@ static func fresh_campaign() -> Dictionary:
 		"log": [], "memorial": [], "studied": [], "briefed": false, "debrief": -1, "difficulty": 1, "points": 0}
 
 
+## The parts chosen on the spacecraft design screen, read by the mission screen.
+var space_picks := {}
+
+
+## A spacecraft contract finished: it counts, its grade and points go in the story, and the campaign points grow.
+func complete_spacecraft(id: int, result: Dictionary) -> void:
+	if campaign["done"].has(id):
+		return
+	var m := Missions.get_mission(id)
+	var entry := {"id": id, "tag": String(m["tag"]), "name": String(m["name"]).capitalize(),
+		"headline": "You designed a spacecraft for %s and ran its mission: grade %s." % [String(m["name"]).to_lower(), String(result["grade"])],
+		"detail": "%d of %d choices worked. The design was %s." % [int(result.get("wins", 0)), (result.get("results", []) as Array).size(), "legal" if bool(result["design"]["ok"]) else "not legal"],
+		"score": int(result["percent"]), "grade": String(result["grade"]), "points": int(result["points"]), "rows": (result["rows"] as Array).duplicate(true)}
+	campaign["done"].append(id)
+	campaign["log"].append(entry)
+	campaign["points"] = int(campaign.get("points", 0)) + int(entry["points"])
+	autosave()
+
+
 ## A difficulty setting for this campaign: key is resources, shake, window or mult (see ScoreBoard.DIFFICULTY).
 func difficulty_factor(key: String) -> float:
 	return float(ScoreBoard.difficulty(int(campaign.get("difficulty", 1)))[key])
@@ -157,6 +176,19 @@ func new_campaign() -> void:
 ## Can this contract be played now, and if not, exactly why? needs lists what the ship must have.
 func contract_status(id: int) -> Dictionary:
 	var m := Missions.get_mission(id)
+	if String(m.get("kind", "")) == "spacecraft":
+		# Spacecraft design contracts have their own ship each time. They open in a chain once Contract 01 is done.
+		var so := {"open": true, "reason": "", "done": campaign["done"].has(id), "impossible": false, "needs": [], "short": ""}
+		var prev := 0 if id == 3 else id - 1
+		if so["done"]:
+			so["open"] = false
+			so["reason"] = "You completed this contract."
+			so["short"] = "COMPLETE"
+		elif not campaign["done"].has(prev):
+			so["open"] = false
+			so["reason"] = "Finish contract %02d first." % (prev + 1)
+			so["short"] = "FINISH %02d FIRST" % (prev + 1)
+		return so
 	var s: BuildState = build
 	var needs := Missions.requirements(id, s)
 	var out := {"open": true, "reason": "", "done": campaign["done"].has(id), "impossible": false, "needs": needs, "short": ""}
@@ -195,6 +227,8 @@ func refresh_campaign() -> void:
 		return
 	var next := -1
 	for m in Missions.LIST:
+		if String(m.get("kind", "")) == "spacecraft":
+			continue                     # the design contracts are extra: the campaign ends after the first three
 		if bool(m.get("available", false)) and not campaign["done"].has(int(m["id"])):
 			next = int(m["id"])
 			break

@@ -1,2 +1,2 @@
-test_batch2                    18    s  PASS
+test_contract3                 9     s  PASS
 Moonbound tests: 1 of 1 passed

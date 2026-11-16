@@ -42,6 +42,24 @@ func _draw() -> void:
 			_draw_glushko_ohm(w, h)
 		"impact_watch":
 			_draw_impact_watch(w, h)
+		"orbit":
+			_draw_orbit(w, h)
+
+
+# A planet and a tilted orbit with a small spacecraft going round it.
+func _draw_orbit(w: float, h: float) -> void:
+	var c := Vector2(w * 0.5, h * 0.5)
+	draw_circle(c, h * 0.22, Color(0.2, 0.35, 0.8, 0.9))
+	draw_arc(c, h * 0.22, 0, TAU, 28, Color(UiStyle.NEAR_WHITE, 0.6), 1.5, true)
+	var rx := w * 0.34
+	var ry := h * 0.4
+	var pts := PackedVector2Array()
+	for i in 49:
+		var a := TAU * float(i) / 48.0
+		pts.append(c + Vector2(cos(a) * rx, sin(a) * ry))
+	draw_polyline(pts, Color(UiStyle.PHOSPHOR, 0.7), 1.5, true)
+	var sa := _t * 0.8
+	draw_circle(c + Vector2(cos(sa) * rx, sin(sa) * ry), 4.0, UiStyle.PHOSPHOR)
 
 
 # Wide image with a ring basin (shows WHERE) linked to a close-up detail tile (shows what the surface is like).

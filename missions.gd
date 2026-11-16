@@ -72,6 +72,33 @@ const LIST: Array[Dictionary] = [
 		"budget": {"time": 50.0, "power": 22.0},
 		"objectives": [{"id": "log", "label": "Log what you see"}, {"id": "send", "label": "Send within the packets"}, {"id": "review", "label": "Review as Mission Control"}],
 	},
+	{
+		"id": 3, "tag": "CONTRACT 04", "diagram": "orbit", "kind": "spacecraft", "name": "EARTH WILDFIRE",
+		"objective": "Design an uncrewed spacecraft that watches Earth for wildfires from low Earth orbit, then run its mission. Real part numbers, game limits.",
+		"card": "Design a wildfire-watching spacecraft, pick its orbit, and run the mission.", "short": "Design a wildfire-watching spacecraft, pick its orbit, and run the mission.",
+		"evidence": ["SPACECRAFT DESIGN", "ORBIT", "MISSION RESULT"],
+		"available": true, "needs": {"lens": "any", "lab": false},
+		"target": {"name": "Earth Wildfire", "desc": "target", "noun": "target"},
+		"budget": {"time": 50.0, "power": 22.0}, "objectives": [],
+	},
+	{
+		"id": 4, "tag": "CONTRACT 05", "diagram": "orbit", "kind": "spacecraft", "name": "LUNAR ICE",
+		"objective": "Design a spacecraft for a low lunar polar orbit that searches for buried water ice, then run its mission.",
+		"card": "Search the Moon poles for ice. Choose instruments and burns carefully.", "short": "Search the Moon poles for ice. Choose instruments and burns carefully.",
+		"evidence": ["SPACECRAFT DESIGN", "ORBIT", "MISSION RESULT"],
+		"available": true, "needs": {"lens": "any", "lab": false},
+		"target": {"name": "Lunar Ice", "desc": "target", "noun": "target"},
+		"budget": {"time": 50.0, "power": 22.0}, "objectives": [],
+	},
+	{
+		"id": 5, "tag": "CONTRACT 06", "diagram": "orbit", "kind": "spacecraft", "name": "NEPTUNE",
+		"objective": "Design a spacecraft to fly to Neptune, far from the Sun, where solar power fails and signals take hours. Then run its mission.",
+		"card": "Fly to Neptune. Power, autonomy and a big dish decide everything.", "short": "Fly to Neptune. Power, autonomy and a big dish decide everything.",
+		"evidence": ["SPACECRAFT DESIGN", "ORBIT", "MISSION RESULT"],
+		"available": true, "needs": {"lens": "any", "lab": false},
+		"target": {"name": "Neptune", "desc": "target", "noun": "target"},
+		"budget": {"time": 50.0, "power": 22.0}, "objectives": [],
+	},
 ]
 
 

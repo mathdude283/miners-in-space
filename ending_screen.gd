@@ -262,8 +262,10 @@ func _beat_mission() -> void:
 	_stage.add_child(UiStyle.mono_label("YOUR MISSION", 15, UiStyle.AMBER))
 	_stage.add_child(UiStyle.heading("WHAT YOU DID"))
 	_stage.add_child(_mc("Here is the record. Three different jobs: seeing a place, comparing two places, and deciding what you can honestly conclude."))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 22)
+	var row := GridContainer.new()
+	row.columns = 3
+	row.add_theme_constant_override("h_separation", 22)
+	row.add_theme_constant_override("v_separation", 14)
 	for e in PlayerData.campaign.get("log", []):
 		var v := VBoxContainer.new()
 		v.add_theme_constant_override("separation", 8)

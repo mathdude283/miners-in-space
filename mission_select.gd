@@ -35,6 +35,7 @@ func _ready() -> void:
 		card.setup(d, _group)
 		card.chosen.connect(_on_card_chosen)
 	_add_campaign_ui()
+	_add_pages()
 
 	accept_button.disabled = true
 	accept_button.tooltip_text = "Pick a contract first."
@@ -118,7 +119,7 @@ func _update_hint() -> void:
 		hint.text = "PICK A CONTRACT TO CONTINUE"
 		hint.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.75))
 	else:
-		hint.text = "%s  -  NEXT: BUILD YOUR SHIP" % String(Missions.LIST[_selected]["name"])
+		hint.text = "%s  -  NEXT: %s" % [String(Missions.LIST[_selected]["name"]), "DESIGN YOUR SPACECRAFT" if SpaceData.is_space(_selected) else "BUILD YOUR SHIP"]
 		hint.add_theme_color_override("font_color", UiStyle.PHOSPHOR)
 
 
@@ -126,6 +127,9 @@ func _on_accept_pressed() -> void:
 	if _selected < 0:
 		return
 	PlayerData.scenario = _selected
+	if SpaceData.is_space(_selected):
+		_leave("res://space_design.tscn")
+		return
 	# The crew is chosen once and the ship is built once: after the first contract both carry on.
 	if bool(PlayerData.campaign["locked"]):
 		_leave("res://flight.tscn")
@@ -133,6 +137,47 @@ func _on_accept_pressed() -> void:
 		_leave(next_scene)
 	else:
 		_leave("res://build_screen.tscn")
+
+
+## Two pages of contracts: the Moon contracts (build and fly a crewed ship) and the spacecraft design contracts.
+var _page := 0
+var _page_btns: Array[Button] = []
+
+
+func _add_pages() -> void:
+	var col := prompt.get_parent()
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 14)
+	var names := ["CONTRACTS 01 TO 03: THE MOON", "CONTRACTS 04 TO 06: DESIGN A SPACECRAFT"]
+	var group := ButtonGroup.new()
+	for i in 2:
+		var b := Button.new()
+		b.toggle_mode = true
+		b.button_group = group
+		b.text = names[i]
+		b.theme_type_variation = &"OutlineButton"
+		b.add_theme_font_size_override("font_size", 15)
+		b.custom_minimum_size = Vector2(420, 40)
+		b.focus_mode = Control.FOCUS_NONE
+		b.button_pressed = i == 0
+		b.pressed.connect(func(): show_page(i))
+		row.add_child(b)
+		_page_btns.append(b)
+	col.add_child(row)
+	col.move_child(row, prompt.get_index() + 1)
+	show_page(0)
+
+
+## Show page 0 (contracts 01 to 03) or page 1 (04 to 06). Public so a test can stand in for the click.
+func show_page(p: int) -> void:
+	_page = p
+	var cards := cards_row.get_children()
+	for i in cards.size():
+		(cards[i] as Control).visible = (i < 3) == (p == 0)
+	_selected = -1
+	accept_button.disabled = true
+	_update_hint()
 
 
 ## Mission Control speaks first on a new campaign (the briefing) and after each contract (the debrief).

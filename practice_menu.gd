@@ -53,12 +53,13 @@ func _show_menu() -> void:
 		["SEND PHOTOS HOME", "Keep the radio beam on Earth until each photo arrives.", "radio"],
 		["LAUNCH: MAX Q", "Hold SPACE while the pressure is over the limit. It tells you what you did wrong.", "maxq"],
 		["LAUNCH: BOOSTER SEPARATION", "Press SPACE once, inside the green window. Try again as often as you like.", "sep"],
+		["MISSION PLANNER", "Pick the orbit, power and instruments for Earth wildfire, lunar ice and Neptune, using real numbers.", "planner"],
 	]:
 		var b := Button.new()
 		b.text = "%s\n%s" % [opt[0], opt[1]]
 		b.theme_type_variation = &"OutlineButton"
 		b.add_theme_font_size_override("font_size", 19)
-		b.custom_minimum_size = Vector2(0, 84)
+		b.custom_minimum_size = Vector2(0, 72)
 		b.focus_mode = Control.FOCUS_NONE
 		var kind: String = opt[2]
 		b.pressed.connect(func(): start(kind))
@@ -91,6 +92,13 @@ func start(kind: String) -> void:
 		return
 	if _panel != null:
 		_panel.hide()
+	if kind == "planner":
+		var qc := QuizCard.new()
+		qc.questions = QuizData.planner()
+		qc.title_text = "MISSION PLANNER"
+		qc.finished.connect(func(_r): _close())
+		add_child(qc)
+		return
 	if kind == "maxq" or kind == "sep":
 		var ac := AscentControl.new()
 		ac.mode = kind

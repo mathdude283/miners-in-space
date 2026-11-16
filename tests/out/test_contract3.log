@@ -17,17 +17,3 @@ PASS  the close-lens ship can send crops but not the wide frame
 PASS  and a careful 'possible' on each still completes the contract
 PASS  the saved report lists the packets and each verdict
 PASS  and says it is fictional and a game rule
-PASS  the report screen shows the review
-PASS  and does not show the Orientale NASA block
-PASS  sending nothing is reported plainly
-PASS  the case file saves
-PASS  a missing file gives a readable message
-PASS  a file that is not a case gives a readable message
-PASS  a case with a hidden truth field is refused
-PASS  a good case opens for review
-PASS  the review board is on screen
-PASS  and the run record on this computer lets it reveal afterwards
-PASS  a review file opens and is shown already judged
-PASS  the judged review is locked and complete
-PASS  a review that does not match the case is refused
-FAILS: 0

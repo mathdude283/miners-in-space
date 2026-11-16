@@ -1021,6 +1021,12 @@ func _separate_boosters(quality: float) -> void:
 func _ascent_poll(idx: int) -> String:
 	var mile: Dictionary = GroundControl.ASCENT[[2, 3, 4][idx]]
 	Sfx.play("stage")
+	# One poll in the air is enough: the Max Q call. The later calls are announced and go ahead on their own.
+	if idx > 0:
+		_say(String(mile["name"]), String(mile["text"]) + "  Flight control: all stations go.", UiStyle.NEAR_WHITE)
+		await _wait(1.2)
+		_action = ""
+		return "go"
 	_say(String(mile["name"]), String(mile["text"]), UiStyle.NEAR_WHITE)
 	Engine.time_scale = 0.06
 	var layer := Control.new()

@@ -157,6 +157,23 @@ func _maybe_story() -> void:
 	sc.pages = pages
 	sc.title_text = title
 	add_child(sc)
+	if title == "DEBRIEF":
+		var done_id := int(c["log"][c["log"].size() - 1]["id"]) if not c["log"].is_empty() else -1
+		sc.finished.connect(func(): _start_quiz(done_id))
+
+
+## After the debrief, Mission Control asks a few questions about what you just did. Right answers earn points.
+func _start_quiz(id: int) -> void:
+	var qs := QuizData.for_contract(id)
+	if qs.is_empty():
+		return
+	var qc := QuizCard.new()
+	qc.questions = qs
+	qc.title_text = "MISSION CONTROL QUIZ"
+	add_child(qc)
+	qc.finished.connect(func(res: Dictionary):
+		PlayerData.campaign["points"] = int(PlayerData.campaign.get("points", 0)) + int(res["points"])
+		PlayerData.autosave())
 
 
 ## Impact Watch is a two-person game: the second person opens the flyer's case file here, or the flyer opens the review that came back.

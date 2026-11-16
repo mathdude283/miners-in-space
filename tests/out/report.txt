@@ -1,2 +1,2 @@
-test_extras                    10    s  PASS
+test_batch2                    18    s  PASS
 Moonbound tests: 1 of 1 passed

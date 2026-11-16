@@ -1,10 +1,10 @@
 ERROR: Parse JSON failed. Error at line 0: Unknown error getting token
    at: parse_string (core/io/json.cpp:629)
    GDScript backtrace (most recent call first):
-       [0] load_into (res://save_game.gd:89)
+       [0] load_into (res://save_game.gd:102)
        [1] _run (res://tests/test_save.gd:67)
 ERROR: Parse JSON failed. Error at line 0: Expected 'true', 'false', or 'null', got 'not'
    at: parse_string (core/io/json.cpp:629)
    GDScript backtrace (most recent call first):
-       [0] load_into (res://save_game.gd:89)
+       [0] load_into (res://save_game.gd:102)
        [1] _run (res://tests/test_save.gd:67)

@@ -15,7 +15,7 @@ func _run() -> void:
 	var all_ok := true
 	for id in [0, 1, 2]:
 		var qs: Array = QD.for_contract(id)
-		if qs.size() != 3:
+		if qs.size() < 3:
 			all_ok = false
 		for q in qs:
 			if (q["options"] as Array).size() < 3 or int(q["answer"]) < 0 or int(q["answer"]) >= (q["options"] as Array).size() or String(q["why"]).length() < 30 or not (String(q["source"]).begins_with("REAL") or String(q["source"]).begins_with("GAME")):
@@ -28,7 +28,7 @@ func _run() -> void:
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_child(host)
 	var qc = load("res://quiz_card.gd").new()
-	qc.questions = QD.for_contract(0)
+	qc.questions = QD.for_contract(0).slice(0, 3)
 	var res := {}
 	qc.finished.connect(func(r): res.merge(r, true))
 	host.add_child(qc)
@@ -50,7 +50,7 @@ func _run() -> void:
 		await process_frame
 	check("three right answers in a row earn 100, 125 and 150 points", int(res.get("points", 0)) == 375 and int(res.get("correct", 0)) == 3)
 	var qc2 = load("res://quiz_card.gd").new()
-	qc2.questions = QD.for_contract(1)
+	qc2.questions = QD.for_contract(1).slice(0, 3)
 	var res2 := {}
 	qc2.finished.connect(func(r): res2.merge(r, true))
 	host.add_child(qc2)

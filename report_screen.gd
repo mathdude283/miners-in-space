@@ -160,6 +160,9 @@ func _build(layer: Control) -> void:
 			if not bool(d.get("died", false)):
 				mid.add_child(_label("%s was hurt: %s" % [d["name"], d["reason"]], 15, Color(UiStyle.CORAL, 0.9), 520.0))
 		mid.add_child(UiStyle.mono_label("LEFT AT THE END   TIME %d MIN   POWER %d" % [int(run.left("time")), int(run.left("power"))], 14, Color(UiStyle.NEAR_WHITE, 0.75)))
+	var fct := FactData.get_fact(["moon", "moon", "science"][clampi(PlayerData.current_mission(), 0, 2)], PlayerData.current_mission() + 1)
+	if not fct.is_empty():
+		mid.add_child(_label(FactData.line(fct), 14, UiStyle.AMBER, 520.0))
 	mid.add_child(UiStyle.mono_label("Confidence is a GAME score, not a NASA measurement.", 12, Color(UiStyle.NEAR_WHITE, 0.5)))
 
 	# Right: the crew

@@ -15,6 +15,9 @@ const AFTER_CONTRACT := {
 		{"q": "On the real Artemis II flyby, what happened to radio contact behind the Moon?",
 			"options": ["It was lost for about 40 minutes", "It got stronger", "Nothing changed"],
 			"answer": 0, "why": "The Moon blocks the line to Earth, so there is no signal until the crew comes back round. NASA planned about 40 minutes.", "source": "REAL: NASA Artemis II flight day 6 (planned 6:44 to 7:25 p.m. EDT)"},
+		{"q": "Why is Orientale called a BASIN and not just a crater?",
+			"options": ["It is hundreds of kilometres wide, with rings of raised ground", "It is full of water", "It is below the Moon's surface"],
+			"answer": 0, "why": "Basins are the biggest impact scars on the Moon. Their size and rings come from the scale of the impact.", "source": "REAL: NASA and USGS"},
 	],
 	1: [
 		{"q": "Which light shows bright crater RAYS best?",
@@ -26,6 +29,9 @@ const AFTER_CONTRACT := {
 		{"q": "Young craters like Glushko and Ohm have bright rays. What are rays?",
 			"options": ["Bright streaks of material thrown out by the impact", "Beams of sunlight", "Cracks from moonquakes"],
 			"answer": 0, "why": "When a crater forms, it throws bright material far across the surface. Over time the rays fade, so bright rays mean a young crater.", "source": "REAL: USGS Gazetteer of Planetary Nomenclature (Glushko, Ohm)"},
+		{"q": "A scientist wants to compare two photos of one crater. What should stay the same?",
+			"options": ["The Sun's height and direction", "The photographer's name", "The size of the file"],
+			"answer": 0, "why": "If the light changes, the shadows and brightness change too, and you cannot tell what is the crater and what is the lighting.", "source": "REAL idea: controlled comparison; LROC Sun Angles"},
 	],
 	2: [
 		{"q": "Two records came from the same window: a log and a crop of its frame. How many independent witnesses is that?",
@@ -37,6 +43,9 @@ const AFTER_CONTRACT := {
 		{"q": "When only ONE source saw a flash, a careful scientist says it is...",
 			"options": ["Possible, not confirmed", "Confirmed", "Impossible"],
 			"answer": 0, "why": "One report is a lead, not proof. A real event can honestly stay 'possible' until something independent backs it.", "source": "GAME rule inspired by the scientific process"},
+		{"q": "Why does a careful reviewer ask which observer COULD have seen a flash before counting the silence of others?",
+			"options": ["Someone looking elsewhere saw nothing, and that tells you little", "Silence always means the flash was fake", "Observers are never wrong"],
+			"answer": 0, "why": "Silence only counts against an event if the silent observer was looking in the right place at the right time.", "source": "GAME rule inspired by the scientific process"},
 	],
 }
 

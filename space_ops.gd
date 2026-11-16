@@ -110,6 +110,9 @@ func choose(k: int) -> void:
 	box.add_child(_label(("IT WORKED.  " if good else "IT DID NOT WORK.  ") + (String(o["good"]) if good else String(o["bad"])), 24, UiStyle.PHOSPHOR if good else UiStyle.CORAL))
 	if not good:
 		box.add_child(_label("The design decides this. Look at the part that was needed and try it next time.", 17, Color(UiStyle.NEAR_WHITE, 0.75)))
+	var fact := FactData.for_room(String(ph["room"]), _i + mission_id)
+	if not fact.is_empty():
+		box.add_child(_label(FactData.line(fact), 17, UiStyle.AMBER))
 	_stage.add_child(box)
 	var nx := Button.new()
 	nx.text = "NEXT" if _i < (_m["phases"] as Array).size() - 1 else "SEE THE RESULT"
@@ -122,6 +125,25 @@ func choose(k: int) -> void:
 		_i += 1
 		_show_phase())
 	_stage.add_child(nx)
+
+
+## After the result Mission Control asks three questions about this mission, worth points.
+func _after_result() -> void:
+	var qs: Array = []
+	for q in QuizData.planner():
+		if String(q["mission"]) == String(_m["name"]):
+			qs.append(q)
+	if qs.is_empty():
+		get_tree().change_scene_to_file(back_scene)
+		return
+	var qc := QuizCard.new()
+	qc.questions = qs
+	qc.title_text = "MISSION CONTROL QUIZ"
+	add_child(qc)
+	qc.finished.connect(func(res: Dictionary):
+		PlayerData.campaign["points"] = int(PlayerData.campaign.get("points", 0)) + int(res["points"])
+		PlayerData.autosave()
+		get_tree().change_scene_to_file(back_scene))
 
 
 func _show_result() -> void:
@@ -153,5 +175,5 @@ func _show_result() -> void:
 	go.custom_minimum_size = Vector2(420, 84)
 	go.size_flags_horizontal = Control.SIZE_SHRINK_END
 	go.focus_mode = Control.FOCUS_NONE
-	go.pressed.connect(func(): get_tree().change_scene_to_file(back_scene))
+	go.pressed.connect(_after_result)
 	_stage.add_child(go)

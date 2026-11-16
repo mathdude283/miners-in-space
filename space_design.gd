@@ -13,6 +13,8 @@ var _m: Dictionary
 var _meters: VBoxContainer
 var _problems: Label
 var _note: Label
+var _fact: Label
+var _fact_n := 0
 var _launch: Button
 var _sub_groups := {}
 var _inst_btns := {}
@@ -128,6 +130,12 @@ func _ready() -> void:
 	_note.add_theme_color_override("font_color", Color(UiStyle.PHOSPHOR, 0.9))
 	_note.custom_minimum_size = Vector2(640, 40)
 	right.add_child(_note)
+	_fact = Label.new()
+	_fact.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_fact.add_theme_font_size_override("font_size", 14)
+	_fact.add_theme_color_override("font_color", UiStyle.AMBER)
+	_fact.custom_minimum_size = Vector2(640, 60)
+	right.add_child(_fact)
 	var foot := HBoxContainer.new()
 	foot.add_theme_constant_override("separation", 20)
 	root.add_child(foot)
@@ -200,6 +208,9 @@ func _refresh() -> void:
 	for l in lines:
 		_meters.add_child(UiStyle.mono_label("%-8s %s" % [l[0], l[1]], 14, UiStyle.PHOSPHOR if bool(l[2]) else UiStyle.CORAL))
 	_problems.text = "\n".join(d["problems"] as Array)
+	_fact_n += 1
+	if _fact != null:
+		_fact.text = FactData.line(FactData.for_mission(mission_id, _fact_n / 2))
 	_launch.disabled = not bool(d["ok"])
 
 

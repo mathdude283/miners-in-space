@@ -2,7 +2,12 @@ extends Node2D
 
 @onready var questions:MarginContainer = $CanvasLayer/UI/Questions
 @onready var evaluation:MarginContainer = $CanvasLayer/UI/Evaluation
-
+@onready var reviewSumm:Label = $CanvasLayer/UI/Evaluation/VerticalAlign/ReviewSummary
+@onready var question1Result:Label = $CanvasLayer/UI/Evaluation/VerticalAlign/Question1/Result
+@onready var question2Result:Label = $CanvasLayer/UI/Evaluation/VerticalAlign/Question2/Result
+@onready var question3Result:Label = $CanvasLayer/UI/Evaluation/VerticalAlign/Question3/Result
+@onready var question4Result:Label = $CanvasLayer/UI/Evaluation/VerticalAlign/Question4/Result
+@onready var question5Result:Label = $CanvasLayer/UI/Evaluation/VerticalAlign/Question5/Result
 @onready var submit:Button = $CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position/Submit
 
 @onready var question1:Label = $"CanvasLayer/UI/Questions/VerticalAlign"/Q1Container/Question1
@@ -16,6 +21,11 @@ extends Node2D
 @onready var question5:Label = $CanvasLayer/UI/Questions/VerticalAlign/Q5Container/Question5
 @onready var Q5Answers:VBoxContainer = $CanvasLayer/UI/Questions/VerticalAlign/Q5Container/AnswerContainer
 
+@onready var Q1Answer = Q1Answers.get_children()[0].button_group.get_pressed_button()
+@onready var Q2Answer = Q2Answers.get_children()[0].button_group.get_pressed_button()
+@onready var Q3Answer = Q3Answers.get_children()[0].button_group.get_pressed_button()
+@onready var Q4Answer = Q4Answers.get_children()[0].button_group.get_pressed_button()
+@onready var Q5Answer = Q5Answers.get_children()[0].button_group.get_pressed_button()
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -26,8 +36,8 @@ func _ready() -> void:
 	question1.text = generate_question(PlayerData.MissionConfig.SHIPTYPE, PlayerData.ship_type)
 	question2.text = generate_question(PlayerData.MissionConfig.ENGINETYPE, PlayerData.engine_type)
 	question3.text = generate_question(PlayerData.MissionConfig.MISSION, PlayerData.scenario)
-	question4.text = generate_question(PlayerData.MissionConfig.MAXFUEL, PlayerData.MaxFuel.SMALL)
-	question5.text = generate_question(PlayerData.MissionConfig.INSTRUMENTS, PlayerData.Instruments.VISUALCAMERA)
+	question4.text = generate_question(PlayerData.MissionConfig.MAXFUEL, PlayerData.fuel_amount)
+	question5.text = generate_question(PlayerData.MissionConfig.INSTRUMENTS, PlayerData.camera_type)
 
 # Generate question based on a topic using PlayerData
 func generate_question(configType, topic) -> String:
@@ -41,7 +51,7 @@ func generate_question(configType, topic) -> String:
 			Q1Answers.get_children()[3].text = "Long distance exploration"
 			return (
 			"""
-			What is the primary purpose of
+			1. What is the primary purpose of
 			using Local Orbit ship?
 			""")
 		elif topic == PlayerData.ShipType.LOCALLANDING:
@@ -52,33 +62,34 @@ func generate_question(configType, topic) -> String:
 			Q1Answers.get_children()[3].text = "2"
 			return (
 			"""
-			How many bays does a local landing 
-			ship contain?
+			1. What is the max amount bays a
+			local landing ship has?
 			""")
 		elif topic == PlayerData.ShipType.LONGORBIT:
 			# Answer Options Generation
-			Q1Answers.get_children()[0].text = "600 kg" # Correct
-			Q1Answers.get_children()[1].text = "350 kg"
-			Q1Answers.get_children()[2].text = "600 mg"
-			Q1Answers.get_children()[3].text = "350 mg"
+			Q1Answers.get_children()[0].text = "30,000 kg" # Correct
+			Q1Answers.get_children()[1].text = "35,000 kg"
+			Q1Answers.get_children()[2].text = "60,000 mg"
+			Q1Answers.get_children()[3].text = "350,000 mg"
 			return (
 			"""
-			What is the basic onboard propellant
+			1. What is the basic onboard propellant
 			capacity of a Long Orbit ship? 
 			""")
 		elif topic == PlayerData.ShipType.LONGLANDING:
 			# Answer Options Generation
-			Q1Answers.get_children()[0].text = "6"
+			Q1Answers.get_children()[0].text = "6" # Correct
 			Q1Answers.get_children()[1].text = "4"
 			Q1Answers.get_children()[2].text = "7"
 			Q1Answers.get_children()[3].text = "5"
 			return (
 			"""
-			How many Instruments can a Long
+			1. How many Instruments can a Long
 			Landing Ship hold?
 			""")
 	# Generate Engine Type Question
 	if configType == PlayerData.MissionConfig.ENGINETYPE:
+		print(topic)
 		if topic == PlayerData.EngineType.SOLIDSMALL:
 			# Answer Options Generation
 			Q2Answers.get_children()[0].text = "bananana"
@@ -138,44 +149,44 @@ func generate_question(configType, topic) -> String:
 	if configType == PlayerData.MissionConfig.MISSION:
 		if topic == PlayerData.Scenario.MISSION_1:
 			Q3Answers.get_children()[0].text = "Light Pollution"
-			Q3Answers.get_children()[1].text = "Wildfires"
+			Q3Answers.get_children()[1].text = "Wildfires" # Correct
 			Q3Answers.get_children()[2].text = "Extreme Weather"
 			Q3Answers.get_children()[3].text = "Earth's Rotation"
 			return (
 			"""
-			You have selected Mission 1. 
+			3. You have selected Mission 1. 
 			What will you be detecting?
 			""")
 	# Generate Fuel Type Question
 	if configType == PlayerData.MissionConfig.MAXFUEL:
-		if topic == PlayerData.MaxFuel.SMALL:
-			Q4Answers.get_children()[0].text = "10 kg" # Correct
-			Q4Answers.get_children()[1].text = "20 kg"
-			Q4Answers.get_children()[2].text = "10 mg"
-			Q4Answers.get_children()[3].text = "20 mg"
+		if topic == 25:
+			Q4Answers.get_children()[0].text = "500 kg" # Correct
+			Q4Answers.get_children()[1].text = "200 kg"
+			Q4Answers.get_children()[2].text = "100 mg"
+			Q4Answers.get_children()[3].text = "200 mg"
 			return (
 			"""
-			How much does a small 
+			4. How much does a small 
 			fuel tank in a Local Orbit ship hold?
 			""")
-		elif topic == PlayerData.MaxFuel.MEDIUM:
-			Q4Answers.get_children()[0].text = "150 kg"
-			Q4Answers.get_children()[1].text = "350 kg"
-			Q4Answers.get_children()[2].text = "250 kg" # Correct
-			Q4Answers.get_children()[3].text = "450 kg"
+		elif topic == 50:
+			Q4Answers.get_children()[0].text = "15,000 kg"
+			Q4Answers.get_children()[1].text = "3,500 kg"
+			Q4Answers.get_children()[2].text = "30,000 kg" # Correct
+			Q4Answers.get_children()[3].text = "45,000 kg"
 			return (
 			"""
-			How much does a medium 
+			4. How much does a medium 
 			fuel tank in Long Orbit ship hold?
 			""")
-		elif topic == PlayerData.MaxFuel.LARGE:
-			Q4Answers.get_children()[0].text = "60 kg"
-			Q4Answers.get_children()[1].text = "30 kg"
-			Q4Answers.get_children()[2].text = "60 L"
-			Q4Answers.get_children()[3].text = "30 L"
+		elif topic == 100:
+			Q4Answers.get_children()[0].text = "2,500 kg" # Correct
+			Q4Answers.get_children()[1].text = "3,000 kg"
+			Q4Answers.get_children()[2].text = "6,000 L"
+			Q4Answers.get_children()[3].text = "30,000 L"
 			return (
 			"""
-			How much does a large
+			4. How much does a large
 			fuel tank in Local Orbit ship hold?
 			""")
 	# Generate Instrument/Components Type Question
@@ -187,7 +198,7 @@ func generate_question(configType, topic) -> String:
 			Q5Answers.get_children()[3].text = "15 W" # Correct
 			return (
 			"""
-			How much power might the 
+			5. How much power might the 
 			visual camera cost?
 			""")
 		elif topic == PlayerData.Instruments.INFAREDCAMERA:
@@ -197,7 +208,7 @@ func generate_question(configType, topic) -> String:
 			Q5Answers.get_children()[3].text = "8 Gb"
 			return (
 			"""
-			What is the speed at which 
+			5. What is the speed at which 
 			the Infared Camera transmits data?
 			""")
 	return "No Question"
@@ -205,11 +216,11 @@ func generate_question(configType, topic) -> String:
 
 
 func _process(delta: float) -> void:
-	var Q1Answer = Q1Answers.get_children()[0].button_group.get_pressed_button()
-	var Q2Answer = Q2Answers.get_children()[0].button_group.get_pressed_button()
-	var Q3Answer = Q3Answers.get_children()[0].button_group.get_pressed_button()
-	var Q4Answer = Q4Answers.get_children()[0].button_group.get_pressed_button()
-	var Q5Answer = Q5Answers.get_children()[0].button_group.get_pressed_button()
+	Q1Answer = Q1Answers.get_children()[0].button_group.get_pressed_button()
+	Q2Answer = Q2Answers.get_children()[0].button_group.get_pressed_button()
+	Q3Answer = Q3Answers.get_children()[0].button_group.get_pressed_button()
+	Q4Answer = Q4Answers.get_children()[0].button_group.get_pressed_button()
+	Q5Answer = Q5Answers.get_children()[0].button_group.get_pressed_button()
 	if (Q1Answer != null and Q2Answer != null and Q3Answer != null and Q4Answer != null and Q5Answer != null):
 		submit.disabled = false
 
@@ -217,6 +228,40 @@ func start_review() -> void:
 	print("Starting review..")
 	questions.hide()
 	evaluation.show()
+	var total = 0.0
+	var score = 0.0
+	if (Q1Answer.text == "Nearby orbital observation" or
+		Q1Answer.text == "6" or
+		Q1Answer.text == "30,000kg"):
+		total += 1
+		question1Result.text = "Passed"
+	else:
+		question1Result.text = "Failed"
+	if (Q2Answer.text == "banana"):
+		total += 1
+		question2Result.text = "Passed"
+	else:
+		question2Result.text = "Failed"
+	if (Q3Answer.text == "Wildfires"):
+		total += 1
+		question3Result.text = "Passed"
+	else:
+		question3Result.text = "Failed"
+	if (Q4Answer.text == "500 kg" or 
+		Q4Answer.text == "30,000 kg" or 
+		Q4Answer.text == "2,500 kg"):
+		total += 1
+		question4Result.text = "Passed"
+	else:
+		question4Result.text = "Failed"
+	if (Q5Answer.text == "15 W" or
+		Q5Answer.text == "8 Mb"):
+		total += 1
+		question5Result.text = "Passed"
+	else:
+		question5Result.text = "Failed"
+	score = round((total/6)*100)
+	reviewSumm.text = str(score)
 
 func _on_back_pressed() -> void:
 	print("Back pressed!")
@@ -226,3 +271,12 @@ func _on_back_pressed() -> void:
 func _on_submit_pressed() -> void:
 	print("Submit pressed!")
 	start_review()
+
+
+func _on_retry_pressed() -> void:
+	print("Retry pressed")
+	evaluation.hide()
+	questions.show()
+
+func _on_continue_pressed() -> void:
+	print("Continue pressed")

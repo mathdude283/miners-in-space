@@ -25,11 +25,10 @@ grow_vertical = 2
 theme = ExtResource("2_tavjp")
 
 [node name="Questions" type="MarginContainer" parent="CanvasLayer/UI" unique_id=421722413]
-visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.472
-anchor_top = 0.079
+anchor_top = 0.259
 anchor_right = 0.506
 anchor_bottom = 0.742
 grow_horizontal = 2
@@ -232,10 +231,13 @@ layout_mode = 2
 text = "Submit For Review"
 
 [node name="Evaluation" type="MarginContainer" parent="CanvasLayer/UI" unique_id=1331884171]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.427
+anchor_top = 0.315
 anchor_right = 0.427
+anchor_bottom = 0.315
 offset_right = 149.0
 offset_bottom = 31.0
 
@@ -300,3 +302,5 @@ text = "Continue"
 
 [connection signal="pressed" from="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position/Back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position/Submit" to="." method="_on_submit_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/Evaluation/VerticalAlign/EvaluationButtons/Position/Retry" to="." method="_on_retry_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/Evaluation/VerticalAlign/EvaluationButtons/Position/Continue" to="." method="_on_continue_pressed"]

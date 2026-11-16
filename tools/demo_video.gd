@@ -7,25 +7,26 @@ var _cap: Label
 var _cpos := Vector2(960, 700)
 var _ripple := -1.0
 var _plan: Array = []
-const CAPTIONS := [
-	"MOONBOUND: a free educational space game inspired by NASA's Artemis II",
-	"Choose a contract and a crew, then build your own ship",
-	"Choose a contract and a crew, then build your own ship",
-	"Choose a contract and a crew, then build your own ship",
-	"Fly it yourself: photograph the REAL Orientale Basin from NASA's picture",
-	"Watch two windows for a flash. One witness is not proof",
-	"Every flight is graded: points, badges and Mission Control's quiz",
-	"Every answer explains why, with a source",
-	"Then design spacecraft for wildfires, lunar ice and Neptune, using real numbers",
-	"Bring them home, and learn real space science along the way",
+# The caption on each screen is exactly the sentence the voice says there (two screens can share one sentence).
+const LINES := [
+	"Moonbound: a free space game inspired by Artemis Two.",
+	"Pick a contract.",
+	"Choose your crew.",
+	"Build your ship.",
+	"Fly it, and photograph the real Orientale Basin.",
+	"Spot a flash. One witness is not proof.",
+	"Every flight is graded, then quizzed by Mission Control.",
+	"Later: design spacecraft for Neptune, and more.",
+	"Bring them home, and earn your certificate.",
 ]
+const STEP_LINE := [0, 1, 2, 3, 4, 5, 6, 6, 7, 8]
 var _scene: Node
 var _pd: Node
 var _step := -1
 const FPS := 30
 
 # (frame to start at, what to show)
-const TIMELINE := [0, 105, 180, 240, 315, 450, 555, 645, 705, 810]
+const TIMELINE := [0, 115, 175, 235, 295, 425, 532, 622, 702, 815]
 
 func _make_overlay() -> void:
 	var layer := CanvasLayer.new()
@@ -105,13 +106,13 @@ func _process(_delta: float) -> bool:
 				c.queue_free()
 	_during(idx, _frames - TIMELINE[idx])
 	_move_cursor(idx, _frames - TIMELINE[idx])
-	if _frames >= 902:
+	if _frames >= 898:
 		quit()
 	return false
 
 ## Where the cursor goes in each step: [frame, target position (or a Callable), click?]. The cursor glides to each target.
 func _move_cursor(i: int, f: int) -> void:
-	_cap.text = CAPTIONS[i]
+	_cap.text = LINES[STEP_LINE[i]]
 	var target := _cpos
 	var click_now := false
 	match i:

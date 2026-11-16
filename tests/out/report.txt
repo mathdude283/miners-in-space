@@ -1,2 +1,2 @@
-test_score                     3     s  PASS
+test_build_ui                  12    s  PASS
 Moonbound tests: 1 of 1 passed

@@ -16,14 +16,11 @@ var _fact_tag: Label
 var _fact: Label
 var _flight_tag: Label
 var _flight: Label
-var _real: Label
-var _real_tag: Label
-var _real_row: Control
 var _action: Button
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(0, 190)
+	custom_minimum_size = Vector2(0, 148)
 	add_theme_stylebox_override("panel", UiStyle.panel(12))
 
 	var row := HBoxContainer.new()
@@ -73,17 +70,6 @@ func _ready() -> void:
 	_flight = flight_pair[1]
 	_flight_tag = flight_pair[2]
 	col.add_child(flight_pair[0])
-	# REAL spacecraft numbers from the team's spacecraft sheet (kg, W, $M). Game units on the Build screen are different.
-	var real_pair := _line("REAL", UiStyle.PHOSPHOR)
-	_real = real_pair[1]
-	_real.clip_text = false
-	_real.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_real.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-	_real.add_theme_font_size_override("font_size", 14)
-	_real.add_theme_color_override("font_color", Color(UiStyle.PHOSPHOR, 0.85))
-	_real_tag = real_pair[2]
-	_real_row = real_pair[0]
-	col.add_child(_real_row)
 
 	_action = Button.new()
 	_action.theme_type_variation = &"OutlineButton"
@@ -114,7 +100,7 @@ func _line(tag: String, tag_color: Color) -> Array:
 
 
 func show_empty(text: String) -> void:
-	_thumb.texture = load("res://assets/ui/kit/moonbound01_lunar_radar.png")
+	_thumb.texture = null
 	_name.text = "PICK A PART"
 	_chips.text = ""
 	_source.text = ""
@@ -124,8 +110,6 @@ func show_empty(text: String) -> void:
 	_fact_tag.text = ""
 	_flight.text = ""
 	_flight_tag.text = ""
-	_real.text = ""
-	_real_tag.text = ""
 	_action.visible = false
 
 
@@ -148,8 +132,6 @@ func show_part(part: Dictionary, info: Dictionary, action_text: String, action_e
 		_fact_tag.add_theme_color_override("font_color", UiStyle.AMBER)
 		_fact.text = String(info.get("game", ""))
 		_source.text = ""
-	_real.text = String(info.get("real", "")).trim_prefix("REAL: ")
-	_real_tag.text = "REAL" if _real.text != "" else ""
 	var fl := String(info.get("flight", ""))
 	_flight_tag.text = "FLIGHT" if fl != "" else ""
 	_flight.text = fl

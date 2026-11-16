@@ -175,8 +175,6 @@ func _refresh_ready() -> void:
 			note.text = "Finishing Orientale LOCKS this ship. Contract 02 could not be flown with it."
 		elif cid == 0 and not bool(r["ready"]):
 			note.text = "You may still fly. A bad ship can fail."
-		elif cid == 0 and not state.has_room("medical"):
-			note.text = "TIP: the kit only has a food warmer and first aid. A Galley cooks real meals and a Medical Bay treats crew in flight."
 
 
 ## The first contract locks the ship for the rest of the game. If this ship cannot fly the next contract, say so before the

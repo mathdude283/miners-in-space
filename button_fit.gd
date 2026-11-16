@@ -15,11 +15,27 @@ func _ready() -> void:
 	get_tree().node_added.connect(_on_node_added)
 
 
+## The Build screen keeps its original look: its buttons are left exactly as designed.
+static func _in_build(b: Node) -> bool:
+	var p: Node = b
+	while p != null:
+		var sc: Script = p.get_script()
+		if sc != null and String(sc.resource_path).ends_with("build_screen.gd"):
+			return true
+		p = p.get_parent()
+	return false
+
+
 func _on_node_added(n: Node) -> void:
 	if n is Button and not (n is CheckBox) and not (n is OptionButton):
 		_buttons.append(n)
-		(n as Button).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_set_wrap.call_deferred(n)
 		_check_later.call_deferred(n)
+
+
+func _set_wrap(b: Button) -> void:
+	if is_instance_valid(b) and not _in_build(b):
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
 func _check_later(b: Button) -> void:
@@ -60,7 +76,7 @@ static func fits(b: Button, font_size: int) -> bool:
 
 ## Make the text fit: shrink the font until it does, or put the original size back if the original now fits.
 static func fit(b: Button) -> void:
-	if b.text == "":
+	if b.text == "" or _in_build(b):
 		return
 	if not b.has_meta("fit_orig"):
 		b.set_meta("fit_orig", b.get_theme_font_size("font_size"))

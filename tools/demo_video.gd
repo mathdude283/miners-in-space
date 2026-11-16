@@ -17,7 +17,15 @@ const LINES := [
 	[597, "Imagine students designing spacecraft for wildfires, lunar ice, even Neptune. That's how we inspire the next explorers!"],
 ]
 # The screens, in order: start frame and what to show.
-const SCREENS := [[0, "title"], [112, "farside"], [241, "select"], [357, "build"], [417, "photo"], [537, "impact"], [582, "report"], [630, "design"], [715, "ending"]]
+const SCREENS := [[0, "title"], [112, "farside"], [241, "title2"], [357, "build"], [417, "photo"], [525, "impact"], [570, "report"], [597, "design"], [705, "ending"]]
+# Title cards that stay on screen: start frame, end frame, big text, small text, position, big text size, colour.
+const CARDS := [
+	[0, 112, "TEAM MINERS IN SPACE", "Presenter: Sarah Waldron   |   NASA Space Apps Challenge 2026", Vector2(70, 60), 46],
+	[112, 241, "THE SPARK: NASA'S ARTEMIS II", "A real flight around the Moon. Could everyone try flying it?", Vector2(70, 60), 40],
+	[241, 357, "MOONBOUND", "Fly real missions. Learn the science.", Vector2(960, 380), 100],
+	[357, 597, "BUILT ON NASA'S OPEN DATA", "Artemis II images  |  LROC Sun angles  |  USGS crater names", Vector2(40, 20), 28],
+	[597, 880, "THE FUTURE", "Wildfires. Lunar ice. Neptune.", Vector2(40, 20), 34],
+]
 const END_FRAME := 872
 
 var _frames := 0
@@ -25,7 +33,7 @@ var _pd: Node
 var _scene: Node
 var _cursor: Control
 var _cap: Label
-var _intro: Control
+var _cards: Array = []
 var _cpos := Vector2(960, 700)
 var _ripple := -1.0
 var _screen := -1
@@ -92,27 +100,28 @@ func _make_overlay() -> void:
 	_cap.custom_minimum_size = Vector2(1500, 0)
 	panel.add_child(_cap)
 	layer.add_child(panel)
-	# the introduction card (0:00): team and presenter
-	var card := PanelContainer.new()
-	var sb2 := sb.duplicate() as StyleBoxFlat
-	sb2.set_content_margin_all(22)
-	card.add_theme_stylebox_override("panel", sb2)
-	card.position = Vector2(70, 60)
-	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var v := VBoxContainer.new()
-	var t1 := Label.new()
-	t1.text = "TEAM MINERS IN SPACE"
-	t1.add_theme_font_size_override("font_size", 46)
-	t1.add_theme_color_override("font_color", Color("c8ff36"))
-	var t2 := Label.new()
-	t2.text = "Presenter: Sarah Waldron   |   NASA Space Apps Challenge 2026"
-	t2.add_theme_font_size_override("font_size", 26)
-	t2.add_theme_color_override("font_color", Color("f2f5ff"))
-	v.add_child(t1)
-	v.add_child(t2)
-	card.add_child(v)
-	layer.add_child(card)
-	_intro = card
+	# the title cards: introduction, the spark, the project name and tagline, NASA open data, the future
+	for c in CARDS:
+		var card := PanelContainer.new()
+		var sb2 := sb.duplicate() as StyleBoxFlat
+		sb2.set_content_margin_all(22)
+		card.add_theme_stylebox_override("panel", sb2)
+		card.position = c[4]
+		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var v := VBoxContainer.new()
+		var t1 := Label.new()
+		t1.text = String(c[2])
+		t1.add_theme_font_size_override("font_size", int(c[5]))
+		t1.add_theme_color_override("font_color", Color("c8ff36"))
+		var t2 := Label.new()
+		t2.text = String(c[3])
+		t2.add_theme_font_size_override("font_size", 32 if int(c[5]) > 60 else (20 if int(c[5]) < 36 else 26))
+		t2.add_theme_color_override("font_color", Color("f2f5ff"))
+		v.add_child(t1)
+		v.add_child(t2)
+		card.add_child(v)
+		layer.add_child(card)
+		_cards.append(card)
 
 
 func _draw_cursor() -> void:
@@ -143,13 +152,16 @@ func _overlay(screen: String, f: int) -> void:
 		if _frames >= int(l[0]):
 			text = String(l[1])
 	_cap.text = text
-	_intro.visible = _frames < 112
+	for i in CARDS.size():
+		(_cards[i] as Control).visible = _frames >= int(CARDS[i][0]) and _frames < int(CARDS[i][1])
 	var target := _cpos
 	var click_now := false
 	match screen:
 		"title":
 			target = _btn("START") if f > 40 else Vector2(1200, 760)
 			click_now = f == 80
+		"title2":
+			target = Vector2(1500, 560)
 		"farside":
 			target = Vector2(1300, 420)
 		"select":
@@ -209,7 +221,7 @@ func _ship() -> BuildState:
 
 func _begin(screen: String) -> void:
 	match screen:
-		"title":
+		"title", "title2":
 			_pd.new_campaign()
 			_swap(load("res://title.tscn").instantiate())
 		"farside":
@@ -312,5 +324,5 @@ func _during(screen: String, f: int) -> void:
 			if w != null and w.has_method("log_sighting") and f == 36:
 				w.log_sighting(412.0, 236.0)
 		"ending":
-			if f == 55 and _scene.has_method("_show"):
+			if f == 20 and _scene.has_method("_show"):
 				_scene._show(_scene.beat_count() - 1)

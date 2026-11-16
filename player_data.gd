@@ -19,7 +19,7 @@ var evidence: Array[Dictionary] = []
 ## The campaign: which contracts are done, whether the ship is locked, and whether it is over.
 ## The ship is built once, in the first contract, and from the moment that contract is completed it is the ship
 ## for the rest of the game. When the whole crew is gone, or the ship cannot do the next contract, the campaign ends.
-var campaign := {"done": [], "locked": false, "over": false, "won": false, "over_reason": "", "crew_chosen": false}
+var campaign := fresh_campaign()
 ## The crew the player named. It is kept between missions.
 var crew: Array[Dictionary] = CrewData.defaults()
 ## The mission being played right now (resources, objectives, choices, events, evidence).
@@ -45,6 +45,10 @@ func start_run() -> MissionRun:
 		d["cause"] = ""
 		fresh.append(d)
 	run = MissionRun.start(current_mission(), fresh)
+	# the difficulty chosen for this campaign tightens time and power
+	for k in run.resources:
+		run.resources[k]["max"] = float(run.resources[k]["max"]) * difficulty_factor("resources")
+		run.resources[k]["cur"] = float(run.resources[k]["cur"]) * difficulty_factor("resources")
 	# Each solar wing adds to the power the crew can spend on jobs (a GAME rule)
 	var wings := get_build().wings
 	if run.resources.has("power"):
@@ -55,6 +59,69 @@ func start_run() -> MissionRun:
 
 func current_mission() -> int:
 	return int(scenario) if scenario != null else 0
+
+
+## A campaign with nothing done. "log" is the story so far (one entry per finished contract), "memorial" is anyone lost,
+## "studied" is the real places the player observed, "briefed" is whether the opening briefing was shown, and "debrief" is the
+## contract whose debrief Mission Control still has to give (-1 for none).
+static func fresh_campaign() -> Dictionary:
+	return {"done": [], "locked": false, "over": false, "won": false, "over_reason": "", "crew_chosen": false,
+		"log": [], "memorial": [], "studied": [], "briefed": false, "debrief": -1, "difficulty": 1, "points": 0}
+
+
+## A difficulty setting for this campaign: key is resources, shake, window or mult (see ScoreBoard.DIFFICULTY).
+func difficulty_factor(key: String) -> float:
+	return float(ScoreBoard.difficulty(int(campaign.get("difficulty", 1)))[key])
+
+
+## One line of the story for a finished contract: what the player did, how well (a 0 to 100 GAME score).
+func log_entry(id: int) -> Dictionary:
+	var m := Missions.get_mission(id)
+	var e := {"id": id, "tag": String(m["tag"]), "name": String(m["name"]).capitalize(), "headline": "Contract complete.", "detail": "", "score": 70}
+	if run == null:
+		return e
+	match id:
+		0:
+			var got := 0
+			var best := 0
+			for ev in run.evidence:
+				if bool(ev.get("received", false)):
+					got += 1
+					best = maxi(best, int(ev.get("stars", 0)))
+			e["headline"] = "You photographed the Orientale Basin: %d photo%s reached Earth." % [got, "" if got == 1 else "s"]
+			var bits: Array[String] = []
+			if best > 0:
+				bits.append("Your best shot scored %d of 3 stars." % best)
+			var nc: Dictionary = run.nasa_compare
+			if not nc.is_empty():
+				bits.append("Against NASA's real view you found the dark interior: %s, and the bright rings: %s." % ["yes" if nc.get("interior", false) else "no", "yes" if nc.get("rings", false) else "no"])
+			if bool(run.fault.get("happened", false)):
+				bits.append("A camera fault hit mid-flight and you worked around it.")
+			e["detail"] = " ".join(bits)
+			e["score"] = clampi(40 + 20 * best, 40, 100)
+		1:
+			var ev1: Dictionary = run.science.get("eval", {})
+			var conf := String(ev1.get("confidence", "TENTATIVE"))
+			e["headline"] = "You compared two craters under different light and reached %s confidence." % conf.to_lower()
+			e["detail"] = "Which way the light came from, and where the rays show best, were part of your call. Comparability (a game rule) was %d%%." % int(float(ev1.get("comparability", 0.0)) * 100.0)
+			e["score"] = {"STRONG": 100, "MODERATE": 78}.get(conf, 55)
+		2:
+			var ev2: Dictionary = run.impact.get("eval", {})
+			var res: Array = ev2.get("results", [])
+			var ok := 0
+			for r in res:
+				if bool(r.get("justified", false)):
+					ok += 1
+			e["headline"] = "Mission Control gave justified verdicts on %d of %d sightings." % [ok, res.size()]
+			e["detail"] = "You sent %d of %d packets. Average credit %d%%. Records from one witness counted once." % [int(run.impact.get("sent_cost", 0)), int(run.impact.get("budget", 0)), int(float(ev2.get("mean_credit", 0.0)))]
+			e["score"] = clampi(int(float(ev2.get("mean_credit", 70.0))), 40, 100)
+	# the grade and points for this flight (a GAME score), which replace the rough score above
+	var sb := ScoreBoard.compute(run, id, int(campaign.get("difficulty", 1)))
+	e["score"] = int(sb["percent"])
+	e["grade"] = String(sb["grade"])
+	e["points"] = int(sb["points"])
+	e["rows"] = (sb["rows"] as Array).duplicate(true)
+	return e
 
 
 ## Write the campaign to the save slot (once the crew has been chosen).
@@ -77,7 +144,7 @@ func start_over() -> void:
 
 ## Start again from nothing: a new ship, a new crew, no contracts done.
 func new_campaign() -> void:
-	campaign = {"done": [], "locked": false, "over": false, "won": false, "over_reason": "", "crew_chosen": false}
+	campaign = fresh_campaign()
 	build = null
 	crew = CrewData.defaults()
 	run = null
@@ -147,6 +214,19 @@ func complete_contract(id: int) -> void:
 	if not campaign["done"].has(id):
 		campaign["done"].append(id)
 	campaign["locked"] = true
+	var done_before := false
+	for old in campaign["log"]:
+		if int(old.get("id", -1)) == id:
+			done_before = true
+	if not done_before:
+		var entry := log_entry(id)
+		campaign["log"].append(entry)
+		campaign["points"] = int(campaign.get("points", 0)) + int(entry.get("points", 0))
+		if id == 0 and not campaign["studied"].has("Orientale Basin"):
+			campaign["studied"].append("Orientale Basin")
+		if id == 1 and run != null and String(run.science.get("eval", {}).get("branch", "")) == "ohm" and not campaign["studied"].has("Ohm"):
+			campaign["studied"].append("Ohm")
+		campaign["debrief"] = id
 	refresh_campaign()
 	autosave()
 
@@ -165,6 +245,14 @@ func sync_crew_after_flight() -> void:
 			d["note"] = ""
 			survivors.append(d)
 	crew = survivors
+	for dead in run.crew:
+		if float(dead["health"]) <= 0.0:
+			var known := false
+			for m in campaign["memorial"]:
+				if String(m.get("name", "")) == String(dead["name"]):
+					known = true
+			if not known:
+				campaign["memorial"].append({"name": String(dead["name"]), "role": String(dead["role"]), "char": String(dead["char"]), "cause": String(dead.get("cause", ""))})
 	if crew.is_empty():
 		campaign["over"] = true
 		var causes: Array[String] = []

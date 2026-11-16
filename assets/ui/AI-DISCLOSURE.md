@@ -62,3 +62,8 @@ This disclosure was also drafted with AI assistance. Update the register wheneve
 **AI-generated artwork.** Spacecraft rooms, hull parts, and interface concepts were created with OpenAI image generation using the team's Y2K direction. Codex assisted with asset preparation, research summaries, and design documentation. See the AI disclosure register for individual files.
 
 Credit each real NASA photograph, recording, or annotation separately with its original source. If the game uses a crop or other adaptation, identify that change. The lunar image in the builder mockup is generated artwork and should carry that label if shown on its own.
+
+
+### Drive art kit pieces added 15 Nov 2026 (`assets/ui/kit/`)
+
+All from the team's Drive "04 App visual kit" and tracked in its asset manifest. Each is **AI-generated art** (OpenAI image generation) unless the Drive disclosure says otherwise. Used for: Mission Control coach portrait (`panel_mission_control`, portrait part only), evidence photo frame and observation pin (Impact Watch), Earth hologram (radio), planned loss of signal picture (radio blackout), data cartridge and lunar radar pictures (Impact Watch), mission report banner, achievement badges (report and ending), lunar terrain layer (ending). Also downloaded for later use: cabin viewport, radio signal badge, capture and reticle overlays, timeline marker, item slot frame, fly banner, Earth horizon layer.

@@ -47,7 +47,7 @@ func _show_menu() -> void:
 	l.custom_minimum_size = Vector2(840, 0)
 	col.add_child(l)
 	for opt in [
-		["MOON PHOTO", "Aim, hold, release at the three-ring basin (Contract 01).", "basin"],
+		["MOON PHOTO", "Aim, hold, release at the real Orientale basin (Contract 01).", "basin"],
 		["CRATER PHOTO, LOW SUN", "Shadows show the crater's shape (Contract 02).", "crater_low"],
 		["CRATER PHOTO, HIGH SUN", "No shadows, so bright rays stand out (Contract 02).", "crater_high"],
 		["SEND PHOTOS HOME", "Keep the radio beam on Earth until each photo arrives.", "radio"],

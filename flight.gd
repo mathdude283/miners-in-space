@@ -1466,8 +1466,8 @@ func _show_result(out: Dictionary) -> void:
 		_confetti()
 		# Sparkles from the Y2K decoration pack flank the result panel
 		var deco := Decor.frame_layer(self)
-		Decor.add(deco, "decor_chrome_star_cluster", Rect2(250, 130, 230, 230), {"pulse": 0.6})
-		Decor.add(deco, "decor_chrome_star_cluster", Rect2(1440, 130, 230, 230), {"pulse": 0.6, "flip_h": true})
+		pass
+		pass
 	else:
 		Sfx.play("fail")
 	var center := CenterContainer.new()
@@ -1614,7 +1614,7 @@ func _show_result(out: Dictionary) -> void:
 	var back := Button.new()
 	var over := bool(PlayerData.campaign["over"])
 	var locked := bool(PlayerData.campaign["locked"])
-	back.text = "SEE THE REPORT" if (success or partial) else ("NEW CAMPAIGN" if over else ("BUILD AGAIN" if not locked else "BACK TO CONTRACTS"))
+	back.text = "SEE THE REPORT" if (success or partial) else ("SEE THE ENDING" if over else ("BUILD AGAIN" if not locked else "BACK TO CONTRACTS"))
 	back.theme_type_variation = &"PrimaryButton"
 	back.add_theme_font_size_override("font_size", 28)
 	back.custom_minimum_size = Vector2(380, 100)
@@ -1622,8 +1622,7 @@ func _show_result(out: Dictionary) -> void:
 		if success or partial:
 			get_tree().change_scene_to_file("res://report_screen.tscn")
 		elif over:
-			PlayerData.start_over()
-			get_tree().change_scene_to_file("res://mission_select.tscn")
+			get_tree().change_scene_to_file("res://ending_screen.tscn")
 		elif locked:
 			get_tree().change_scene_to_file("res://mission_select.tscn")
 		else:

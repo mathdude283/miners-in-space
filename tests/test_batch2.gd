@@ -99,12 +99,12 @@ func _run() -> void:
 	var texts: Array = []
 	for l in rs.find_children("*", "Label", true, false):
 		texts.append(l.text)
-	check("the report labels the real NASA view and the simulated photos", texts.any(func(t): return String(t).contains("REAL NASA VIEW") and String(t).contains("SIMULATED")))
+	check("the report labels the real NASA view and says the photos are crops of it", texts.any(func(t): return String(t).contains("REAL NASA VIEW") and String(t).contains("crops of it")))
 	check("the report credits NASA beside the real image", texts.any(func(t): return String(t).contains("Credit: NASA")))
 	var links: Array = rs.find_children("*", "LinkButton", true, false)
 	check("the report links to the NASA source record", links.any(func(l): return String(l.uri).contains("flight-day-6-lunar-flyby")))
 	var txt: String = load("res://report_screen.gd").build_text(run, Missions.get_mission(0))
-	check("the saved report credits NASA and lists the source links", txt.contains("Credit: NASA") and txt.contains("artemis-ii-press-kit") and txt.contains("planetarynames.wr.usgs.gov/Feature/2195") and txt.contains("SIMULATED"))
+	check("the saved report credits NASA and lists the source links", txt.contains("Credit: NASA") and txt.contains("artemis-ii-press-kit") and txt.contains("planetarynames.wr.usgs.gov/Feature/2195") and txt.contains("crops of NASA"))
 	check("the saved report says it is a fictional mission inspired by Artemis II", txt.contains("fictional educational mission inspired by Artemis II"))
 	rs.queue_free()
 	await process_frame

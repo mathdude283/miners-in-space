@@ -90,6 +90,7 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	foot.add_child(spacer)
+	foot.add_child(_difficulty_picker())
 	var go := Button.new()
 	go.text = "CONTINUE TO BUILD"
 	go.theme_type_variation = &"PrimaryButton"
@@ -248,6 +249,40 @@ func _refresh() -> void:
 		sb.content_margin_bottom = 6
 		(r["panel"] as PanelContainer).add_theme_stylebox_override("panel", sb)
 		(r["pic"] as TextureRect).modulate = Color(1, 1, 1, 1.0 if in_seat < 0 or in_seat == _selected else 0.6)
+
+
+## Three buttons: how hard the campaign is, and the points multiplier that comes with it.
+func _difficulty_picker() -> Control:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	v.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	v.add_child(UiStyle.mono_label("DIFFICULTY   (harder = more points)", 13, UiStyle.AMBER))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	v.add_child(row)
+	var blurb := UiStyle.mono_label("", 12, Color(UiStyle.NEAR_WHITE, 0.75))
+	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	blurb.custom_minimum_size = Vector2(520, 0)
+	var group := ButtonGroup.new()
+	for lvl in ScoreBoard.DIFFICULTY.size():
+		var d: Dictionary = ScoreBoard.DIFFICULTY[lvl]
+		var b := Button.new()
+		b.toggle_mode = true
+		b.button_group = group
+		b.text = "%s  x%.2f" % [d["name"], float(d["mult"])]
+		b.theme_type_variation = &"OutlineButton"
+		b.add_theme_font_size_override("font_size", 16)
+		b.custom_minimum_size = Vector2(170, 44)
+		b.focus_mode = Control.FOCUS_NONE
+		b.button_pressed = int(PlayerData.campaign.get("difficulty", 1)) == lvl
+		b.pressed.connect(func():
+			PlayerData.campaign["difficulty"] = lvl
+			blurb.text = String(d["blurb"]))
+		row.add_child(b)
+		if b.button_pressed:
+			blurb.text = String(d["blurb"])
+	v.add_child(blurb)
+	return v
 
 
 func _on_continue() -> void:

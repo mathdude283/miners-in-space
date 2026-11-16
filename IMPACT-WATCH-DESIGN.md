@@ -1,6 +1,16 @@
-# Impact Watch: "Nobody Saw the Same Moon" (design, not built yet)
+# Impact Watch: "Nobody Saw the Same Moon"
 
-Status: design only. Nothing here exists in the game yet. It is a two-person experience: **the flyer** decides what to capture and send; **Mission Control** reviews only what arrived and decides what can responsibly be concluded.
+## Status (built, tested by script, NOT yet tested by a person)
+Built and playable as Contract 03 after Contract 02: slices 1 to 7. Files: `impact_scenario.gd` (the fixed fictional scenario), `impact_watch.gd` (the flyer: watch, log, choose what to send), `impact_case.gd` (export, validation, run record, review file), `impact_control.gd` (the Mission Control board), `impact_review.gd` (scoring and the reveal), wired into `flight.gd`, `report_screen.gd`, `mission_select.gd` ("OPEN A FILE").
+Checked by `tests/test_impact.gd`, `tests/test_impact_ui.gd`, `tests/test_contract3.gd` and a real-input playthrough (mouse clicks on the windows, the send list and the review board, then the return and the report).
+Differences from the design below, on purpose:
+- One player looks through ONE window at a time (tabs), so a window you are not looking through logs nothing. The Flight Deck flash glows for 3.5 seconds so it can be caught after Window 1.
+- Flyer and Mission Control can be the same person in one sitting (the flight shows the board straight after sending), or two people: the flyer sends the case file, the second person opens it with OPEN A FILE on Mission Select, and the review file they save comes back to the flyer, who opens it to see the verdict judged and the reveal. The reveal needs the flyer's run record, which stays on the flyer's computer.
+- Contract 03 completes when every verdict is justified by what arrived. A real event correctly called "possible" or "insufficient" counts. Sending nothing is a partial outcome.
+- Slice 8 (the historical NASA tablet case) is NOT built. The NASA science-report workflow documents were NOT read in full.
+- The blind human test (someone who did not watch the flight) is PENDING. Scripts cannot judge whether the two-person handoff is clear.
+
+## Original design (kept for reference). It is a two-person experience: **the flyer** decides what to capture and send; **Mission Control** reviews only what arrived and decides what can responsibly be concluded.
 
 ## The idea in one paragraph
 One short far-side window. Three candidate sightings: (A) a real simulated impact seen independently by two crew, (B) a real simulated impact seen weakly by one, (C) a plausible artifact (a window reflection). The flyer marks sightings, then spends a limited downlink budget. Mission Control opens the case file offline, sees only what was delivered, classifies each candidate Supported / Possible / Insufficient, and cites records. The reveal: two records that sound like confirmation trace back to one witness.

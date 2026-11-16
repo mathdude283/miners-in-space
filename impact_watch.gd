@@ -11,7 +11,9 @@ extends Control
 signal finished(result: Dictionary)
 
 const RATE := 1.5
-const VIEW := Vector2(800, 500)                       # the window view, in the scenario's own screen units
+const FRAME_TEX: Texture2D = preload("res://assets/ui/kit/frame_evidence_photo_empty.png")   # the team's evidence photo frame (Drive)
+const PIN_TEX: Texture2D = preload("res://assets/ui/kit/overlay_evidence_observation_pin.png")  # observation pin (Drive), tip at (192, 349) of 384
+const VIEW := Vector2(800, 465)                       # the window view, in the scenario's own screen units
 const HIT_PX := 90.0                                  # a click this close to a flash counts as logging it
 const HIT_SEC := 1.6                                  # and this close in time (before or after the flash)
 const EVENTS := [                                     # what is actually visible in each window, and when (the TRUTH, aboard only)
@@ -36,6 +38,8 @@ var _silence_watched := 0.0
 var _marks: Array[Dictionary] = []
 var _chosen := {}
 var _view: Control
+var _coach_panel: CoachPanel
+var _switched := false
 var _clock: Label
 var _head: Label
 var _tabs := {}
@@ -141,7 +145,7 @@ static func observer_names(crew_in: Array) -> Dictionary:
 	var want := {"V1": "Commander", "V2": "Pilot", "V3": "Scientist"}
 	for vp in want:
 		for c in crew_in:
-			if String(c.get("role", "")) == String(want[vp]) and float(c.get("health", 100.0)) > 0.0:
+			if String(c.get("role", "")).to_upper() == String(want[vp]).to_upper() and float(c.get("health", 100.0)) > 0.0:
 				out[vp] = String(c["name"])
 	return out
 
@@ -166,10 +170,19 @@ func _ready() -> void:
 	for i in 90:
 		_stars.append(Vector3(rng.randf() * VIEW.x, rng.randf() * VIEW.y, rng.randf_range(0.3, 1.0)))
 	var dim := ColorRect.new()
-	dim.color = Color(0.01, 0.02, 0.07, 0.97)
+	dim.color = Color(0.01, 0.02, 0.07, 1.0)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
+	var art := TextureRect.new()
+	art.texture = load("res://assets/ui/select/bg_earth_orbit.png")
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	art.modulate = Color(1, 1, 1, 0.28)
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(art)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right"]:
@@ -216,6 +229,13 @@ func _show_brief() -> void:
 	_phase = "brief"
 	_body.add_child(UiStyle.mono_label("CONTRACT 03   -   FICTIONAL SIMULATION, NOT NASA DATA", 14, UiStyle.AMBER))
 	_body.add_child(UiStyle.heading("IMPACT WATCH: NOBODY SAW THE SAME MOON"))
+	var radar := TextureRect.new()
+	radar.texture = load("res://assets/ui/kit/moonbound01_lunar_radar.png")
+	radar.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	radar.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	radar.custom_minimum_size = Vector2(150, 150)
+	radar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_body.add_child(radar)
 	_body.add_child(_label("For 90 seconds the far side of the Moon passes below. Something may flash. You can only look through ONE window at a time. Click where you see a flash to log it. Then you choose what to send: you cannot send everything.", 24, UiStyle.NEAR_WHITE, 1500))
 	var names := {"V1": "Window 1 (Observation Bay)", "V2": "Flight Deck window", "V3": "Science camera"}
 	var needs := {"V1": "", "V2": "needs a Flight Deck", "V3": "needs a Science Lab"}
@@ -256,8 +276,8 @@ func _start_watch() -> void:
 		_tabs[vp] = b
 	_set_vp("V1")
 	_view = Control.new()
-	_view.custom_minimum_size = VIEW + Vector2(0, 0)
-	_view.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_view.size = VIEW
+	_view.position = Vector2(100, 100)
 	_view.mouse_filter = Control.MOUSE_FILTER_STOP
 	_view.clip_contents = true
 	_view.draw.connect(_draw_view)
@@ -265,7 +285,18 @@ func _start_watch() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 30)
 	_body.add_child(row)
-	row.add_child(_view)
+	# the evidence photo frame from the Drive kit sits around the window view (its opening is exactly the view)
+	var holder := Control.new()
+	holder.custom_minimum_size = Vector2(1002, 664)
+	holder.add_child(_view)
+	var frame := TextureRect.new()
+	frame.texture = FRAME_TEX
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_SCALE
+	frame.size = Vector2(1002, 664)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(frame)
+	row.add_child(holder)
 	var side := VBoxContainer.new()
 	side.add_theme_constant_override("separation", 10)
 	side.custom_minimum_size = Vector2(560, 0)
@@ -273,11 +304,42 @@ func _start_watch() -> void:
 	side.add_child(_label("WHAT YOU LOGGED", 18, UiStyle.AMBER))
 	_stage = side
 	side.add_child(_label("Nothing yet.", 20, Color(UiStyle.NEAR_WHITE, 0.7), 540))
+	_switched = false
+	_coach_panel = CoachPanel.new(1100.0, 21)
+	_body.add_child(_coach_panel)
+	_coach_panel.set_steps(["LOOK", "CLICK THE FLASH", "TRY ANOTHER WINDOW"], 0)
+
+
+func _coach_update() -> void:
+	if _coach_panel == null:
+		return
+	var others := 0
+	for vp in ["V1", "V2", "V3"]:
+		if _avail[vp] and vp != _vp:
+			others += 1
+	var step := 0
+	var msg := ""
+	if _marks.is_empty():
+		msg = "Keep your eyes on this window. A flash is a quick, bright dot on the dark surface. Click it the moment you see it."
+		if _t > 35.0:
+			msg = "Nothing logged yet. Flashes are brief: you can only see what you are looking at. Try another window."
+	elif others > 0 and not _switched:
+		step = 2
+		msg = "Logged. Mission Control only sees what you send, and two records from one window count as ONE witness. Try another window for an independent view."
+	else:
+		step = 1
+		msg = "Logged. Keep watching. Spot something in each window you can, then you will choose what to send."
+	if _t > 78.0:
+		msg = "Almost out of time. Next you choose what to send, and you cannot send everything."
+	_coach_panel.say(msg, UiStyle.NEAR_WHITE)
+	_coach_panel.set_steps(["LOOK", "CLICK THE FLASH", "TRY ANOTHER WINDOW"], step)
 
 
 func _set_vp(vp: String) -> void:
 	if not _avail.get(vp, false):
 		return
+	if vp != _vp and _phase == "watch":
+		_switched = true
 	_vp = vp
 	for k in _tabs:
 		var b: Button = _tabs[k]
@@ -295,6 +357,7 @@ func _process(delta: float) -> void:
 	_clock.text = "MISSION CLOCK  %d:%02d / 1:30" % [int(_t) / 60, int(_t) % 60]
 	if _view != null:
 		_view.queue_redraw()
+	_coach_update()
 	if _t >= ImpactScenario.WINDOW_SECONDS:
 		_end_watch()
 
@@ -368,8 +431,12 @@ func _draw_view() -> void:
 	_view.draw_rect(Rect2(sway - Vector2(6, 6), VIEW + Vector2(12, 12)), Color(0.35, 0.4, 0.52), false, 14.0)
 	# logged marks stay on screen for a few seconds
 	for m in _marks:
-		if String(m["vp"]) == _vp and _t - float(m["t"]) < 4.0:
-			_view.draw_arc(Vector2(float(m["x"]), float(m["y"])), 26.0, 0, TAU, 24, UiStyle.PHOSPHOR, 3.0)
+		if String(m["vp"]) == _vp:
+			var mp := Vector2(float(m["x"]), float(m["y"]))
+			if _t - float(m["t"]) < 4.0:
+				_view.draw_arc(mp, 26.0, 0, TAU, 24, UiStyle.PHOSPHOR, 3.0)
+			# a pin stays where you logged it (Drive observation pin; its tip is the spot)
+			_view.draw_texture_rect(PIN_TEX, Rect2(mp - Vector2(192, 349) * 0.2, Vector2(384, 384) * 0.2), false)
 	_view.draw_rect(rect, UiStyle.EDGE, false, 2.0)
 
 
@@ -393,6 +460,14 @@ func _show_send() -> void:
 	_body.add_child(UiStyle.heading("CHOOSE WHAT REACHES MISSION CONTROL"))
 	_budget_label = _label("", 24, UiStyle.PHOSPHOR, 1500)
 	_body.add_child(_budget_label)
+	var cart := TextureRect.new()
+	cart.texture = load("res://assets/ui/kit/moonbound03_data_cartridge.png")
+	cart.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	cart.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	cart.custom_minimum_size = Vector2(0, 90)
+	cart.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	cart.custom_minimum_size = Vector2(135, 90)
+	_body.add_child(cart)
 	_body.add_child(_label("Only what you logged can be sent. A log is cheap. A tight crop looks convincing. A wide frame shows context. Mission Control sees nothing you leave out, and they do not know which candidates are real.", 20, Color(UiStyle.NEAR_WHITE, 0.9), 1500))
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -425,8 +500,8 @@ func _show_send() -> void:
 		b.toggled.connect(func(on): _toggle(id, on, b))
 		_send_list.add_child(b)
 		b.set_meta("pid", id)
-	_send_btn = _button("SEND TO MISSION CONTROL", true, 26, 84)
-	_send_btn.custom_minimum_size = Vector2(520, 84)
+	_send_btn = _button("SEND TO MISSION CONTROL", true, 24, 84)
+	_send_btn.custom_minimum_size = Vector2(640, 84)
 	_send_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_send_btn.disabled = true
 	_send_btn.pressed.connect(_send)

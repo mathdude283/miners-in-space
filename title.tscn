@@ -279,7 +279,7 @@ text = "[color=#c8ff36]AI-generated artwork.[/color] Spacecraft rooms, hull part
 
 [color=#c8ff36]Game numbers.[/color] Weight, power and budget values are game units, not NASA data.
 
-[color=#c8ff36]NASA.[/color] Each real NASA photograph or recording is credited separately with its original source."
+[color=#c8ff36]NASA.[/color] Each real NASA photograph or recording is credited separately with its original source. Moonbound is a fictional educational mission inspired by Artemis II. NASA does not endorse it."
 fit_content = true
 
 [node name="CloseButton" type="Button" parent="CreditsLayer/Center/Panel/Column"]

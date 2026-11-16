@@ -13,6 +13,6 @@ PASS  the Science Lab issue can be inspected
 PASS  with a solar wing the preset is ready for Orientale
 PASS  the first panel says YES
 PASS  Continue explains the lock before launching
-   with lab: ["Weight: 19 / 18 - too heavy", "Power: 11 used / 9 made - not enough"]
+   with lab: ["Power: 11 used / 9 made - not enough"]
 PASS  a one-lens window check still works
 FAILS: 0

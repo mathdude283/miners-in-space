@@ -49,6 +49,7 @@ func _ready() -> void:
 	_focus_first_open_card()
 	_play_intro()
 	_play_idle()
+	_maybe_story.call_deferred()
 
 
 func _process(delta: float) -> void:
@@ -132,6 +133,30 @@ func _on_accept_pressed() -> void:
 		_leave(next_scene)
 	else:
 		_leave("res://build_screen.tscn")
+
+
+## Mission Control speaks first on a new campaign (the briefing) and after each contract (the debrief).
+func _maybe_story() -> void:
+	var c: Dictionary = PlayerData.campaign
+	if bool(c["over"]):
+		return
+	var pages: Array[String] = []
+	var title := "MISSION CONTROL"
+	if not bool(c["briefed"]) and c["done"].is_empty():
+		pages = StoryCard.briefing()
+		title = "MISSION BRIEFING"
+		c["briefed"] = true
+	elif int(c["debrief"]) >= 0:
+		pages = StoryCard.debrief(int(c["debrief"]), c["log"])
+		title = "DEBRIEF"
+		c["debrief"] = -1
+	if pages.is_empty():
+		return
+	PlayerData.autosave()
+	var sc := StoryCard.new()
+	sc.pages = pages
+	sc.title_text = title
+	add_child(sc)
 
 
 ## Impact Watch is a two-person game: the second person opens the flyer's case file here, or the flyer opens the review that came back.

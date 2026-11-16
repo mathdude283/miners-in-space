@@ -22,7 +22,7 @@ const LIST: Array[Dictionary] = [
 		## What the ship must have, beyond the basics. lens: "any" or "both". lab: a Science Lab is required.
 		"needs": {"lens": "any", "lab": false},
 		## What the player is shown and photographs.
-		"target": {"name": "Orientale", "desc": "three-ring basin", "noun": "basin"},
+		"target": {"name": "Orientale", "desc": "dark Orientale basin", "noun": "basin"},
 		## GAME numbers: minutes of operations and power units to spend in flight.
 		"budget": {"time": 40.0, "power": 20.0},
 		"objectives": [

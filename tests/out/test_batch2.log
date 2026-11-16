@@ -12,7 +12,7 @@ PASS  holding after T-1:30 recycles the count to T-10:00
 PASS  clicking the dark interior is correct
 PASS  clicking a bright ring is correct
 PASS  wrong clicks are marked wrong (interior missed, rings missed at the centre)
-PASS  the report labels the real NASA view and the simulated photos
+PASS  the report labels the real NASA view and says the photos are crops of it
 PASS  the report credits NASA beside the real image
 PASS  the report links to the NASA source record
 PASS  the saved report credits NASA and lists the source links

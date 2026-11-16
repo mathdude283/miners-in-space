@@ -83,7 +83,7 @@ func _ready() -> void:
 	_feedback.add_theme_font_size_override("font_size", 18)
 	_feedback.add_theme_color_override("font_color", UiStyle.AMBER)
 	right.add_child(_feedback)
-	var factors := "YOUR SIMULATED PHOTO   FRAMED %d%%   STEADY %d%%   LIGHT %d%%" % [int(framing * 100.0), int(steady * 100.0), int(light * 100.0)] if framing >= 0.0 else "YOUR SIMULATED PHOTO: none to compare."
+	var factors := "YOUR PHOTO (game scores)   FRAMED %d%%   STEADY %d%%   LIGHT %d%%" % [int(framing * 100.0), int(steady * 100.0), int(light * 100.0)] if framing >= 0.0 else "YOUR PHOTO: none to compare."
 	right.add_child(UiStyle.mono_label(factors, 13, Color(UiStyle.NEAR_WHITE, 0.8)))
 	var note := Label.new()
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

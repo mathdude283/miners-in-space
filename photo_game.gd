@@ -15,13 +15,16 @@ signal finished(result: Dictionary)
 
 const BG: Texture2D = preload("res://assets/ui/flight/bg_lunar_surface.png")
 const CONFIRM: Texture2D = preload("res://assets/ui/play/overlay_camera_capture_confirmed.png")
+const NASA_VIEW: Texture2D = preload("res://assets/nasa/artemis2_farside_view.jpg")   # REAL: NASA's annotated far side from the Artemis II flyby (credit NASA)
+const BASIN_AT := Vector2(715.0, 675.0)       # Orientale in that image (pixels)
+const NASA_SCALE := 3.2                       # how much the camera magnifies the NASA view
 const WINDOW_SECONDS := 34.0
 const FRAME := {"wide": Vector2(560, 340), "close": Vector2(250, 156)}
 const LENS_NAME := {"wide": "WIDE", "close": "CLOSE-UP"}
 
 var has_lens := {"wide": true, "close": true}
 ## What is being photographed (from the contract) and what the ship gives you (GAME rules).
-var target := {"name": "Orientale", "desc": "three-ring basin", "noun": "basin"}
+var target := {"name": "Orientale", "desc": "dark Orientale basin", "noun": "basin"}
 var perks := {"shake": 1.0, "tries": 2, "rows": []}
 var met_at_start := 34
 ## Crater contracts (Contract 02): the Sun pass the crew planned at the Flight Deck. {elev, dir, text, id}. Fixed for the window.
@@ -83,6 +86,9 @@ func _ready() -> void:
 	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	bg.size = Vector2(2700, 1520)
 	bg.position = Vector2(-300, -220)
+	if not _is_crater():
+		bg.texture = NASA_VIEW
+		bg.size = NASA_VIEW.get_size() * NASA_SCALE
 	sub.add_child(bg)
 	world = Control.new()
 	world.size = Vector2(1920, 1080)
@@ -129,6 +135,8 @@ func _draw_world() -> void:
 	if _is_crater():
 		_draw_crater(tp)
 		return
+	if true:
+		return                                   # Orientale is NASA's real picture: nothing is drawn over it
 	# Two look-alike craters with a single ring
 	for off in [Vector2(-640, 170), Vector2(-260, -190)]:
 		var p: Vector2 = tp + off
@@ -265,6 +273,7 @@ func _coach_update() -> void:
 	if _fb_t > 0.0:
 		_coach.text = _fb_text
 		_coach.add_theme_color_override("font_color", UiStyle.NEAR_WHITE)
+		(_coach_panel as CoachPanel).set_steps(["AIM", "HOLD", "RELEASE"], -1)
 		return
 	var fr: Vector2 = FRAME[_lens]
 	var on_target := _aim.distance_to(_target_at(_t)) < fr.y * 0.5 * 0.7
@@ -287,10 +296,16 @@ func _coach_update() -> void:
 		msg = "2   HOLD SPACE or the left button to steady the camera"
 	_coach.text = ("PRACTICE   " + msg) if _practice else msg
 	_coach.add_theme_color_override("font_color", col)
+	var step := 0
+	if on_target:
+		step = 1
+	if _holding and on_target and _steady >= 0.85:
+		step = 2
+	(_coach_panel as CoachPanel).set_steps(["AIM", "HOLD", "RELEASE"], step)
 
 
 func _amp() -> float:
-	var base := 8.0 + _t * 0.55
+	var base := (8.0 + _t * 0.55) * PlayerData.difficulty_factor("shake")
 	return base * (1.0 if _lens == "wide" else 1.8) * float(perks.get("shake", 1.0))
 
 
@@ -320,8 +335,8 @@ func _show_brief() -> void:
 	_panel = center
 	# Y2K decoration pack from the team Drive, beside the panel (never over it, never clickable)
 	_deco = Decor.frame_layer(self, center)
-	Decor.add(_deco, "glossy_orbital_hud_emblem", Rect2(80, 360, 360, 360), {"alpha": 0.95, "bob": 7.0})
-	Decor.add(_deco, "glossy_orbit_starburst", Rect2(1480, 360, 360, 360), {"alpha": 0.95, "pulse": 0.4})
+	pass
+	pass
 	var p := PanelContainer.new()
 	p.custom_minimum_size = Vector2(980, 0)
 	p.add_theme_stylebox_override("panel", UiStyle.panel(30, 0.94))
@@ -331,6 +346,28 @@ func _show_brief() -> void:
 	p.add_child(col)
 	col.add_child(UiStyle.mono_label("04  PHOTO", 15, UiStyle.PHOSPHOR))
 	col.add_child(UiStyle.heading("OBSERVATION WINDOW"))
+	if not _is_crater():
+		var look := HBoxContainer.new()
+		look.add_theme_constant_override("separation", 16)
+		var pic := TextureRect.new()
+		var at := AtlasTexture.new()
+		at.atlas = NASA_VIEW
+		at.region = Rect2(BASIN_AT - Vector2(110, 110), Vector2(220, 220))
+		pic.texture = at
+		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		pic.custom_minimum_size = Vector2(130, 130)
+		look.add_child(pic)
+		var lv := VBoxContainer.new()
+		lv.add_child(UiStyle.mono_label("WHAT YOU ARE LOOKING FOR", 14, UiStyle.AMBER))
+		var ll := Label.new()
+		ll.text = "Orientale Basin: a dark, smooth centre with bright rings around it. Find it as the Moon drifts past."
+		ll.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ll.add_theme_font_size_override("font_size", 19)
+		ll.custom_minimum_size = Vector2(760, 0)
+		lv.add_child(ll)
+		look.add_child(lv)
+		col.add_child(look)
 	var goal := Label.new()
 	goal.text = ("Photograph %s yourself. Three steps." % String(CraterScience.CRATERS.get(crater_id, {}).get("name", "the crater"))) if _is_crater() else "You take the photo yourself. Three steps."
 	goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -357,7 +394,7 @@ func _show_brief() -> void:
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(l)
 		col.add_child(row)
-	var note := UiStyle.mono_label("The view is simulated terrain, not NASA imagery. The light rule is a game model." if not _is_crater() else "SIMULATED view, not NASA imagery. Low and high Sun follow the real Sun-angle rule; the look is a game picture.", 13, Color(UiStyle.NEAR_WHITE, 0.55))
+	var note := UiStyle.mono_label("REAL: the view is NASA's far-side picture from the Artemis II flyby (credit NASA). Aim, steadiness and light scores are the game's." if not _is_crater() else "SIMULATED view, not NASA imagery. Low and high Sun follow the real Sun-angle rule; the look is a game picture.", 13, Color(UiStyle.NEAR_WHITE, 0.55))
 	col.add_child(note)
 	var go := Button.new()
 	go.text = "OPEN THE WINDOW"
@@ -438,25 +475,22 @@ func _build_hud() -> void:
 	col.add_child(_done_btn)
 	_refresh_hud()
 	# Live coaching line: always says what to do next
-	var cp := PanelContainer.new()
+	var cp := CoachPanel.new(1000.0, 24)
 	cp.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	cp.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	cp.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	cp.offset_left = -430.0
-	cp.offset_right = 430.0
+	cp.offset_left = -500.0
+	cp.offset_right = 500.0
 	cp.offset_top = -190.0
-	cp.offset_bottom = -70.0
-	cp.custom_minimum_size = Vector2(860, 120)
-	cp.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cp.add_theme_stylebox_override("panel", UiStyle.panel(18, 0.88))
+	cp.offset_bottom = -40.0
 	add_child(cp)
-	_coach = Label.new()
-	_coach.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_coach.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_coach.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_coach.add_theme_font_size_override("font_size", 26)
-	cp.add_child(_coach)
+	_coach = cp.label
 	_coach_panel = cp
+	cp.set_steps(["AIM", "HOLD", "RELEASE"], 0)
+	if not _is_crater():
+		var credit := UiStyle.mono_label("REAL VIEW: NASA, Artemis II flyby. Scores are the game's.", 12, Color(UiStyle.NEAR_WHITE, 0.6))
+		credit.position = Vector2(90, 1030)
+		add_child(credit)
 	# The how-to stays up until the player clicks GOT IT
 	_howto = HowToCard.new()
 	_howto.position = Vector2(90, 450)
@@ -582,12 +616,15 @@ func _process(delta: float) -> void:
 	else:
 		_steady = maxf(_steady - delta * 2.0, 0.0)
 	_flash = maxf(0.0, _flash - delta * 3.0)
-	bg.position = Vector2(-300 - _t * 14.0, -220)
+	if _is_crater():
+		bg.position = Vector2(-300 - _t * 14.0, -220)
+	else:
+		bg.position = _target_at(_t) - BASIN_AT * NASA_SCALE     # the Moon drifts past: the real basin follows the target path
 	world.queue_redraw()
 	_finder.queue_redraw()
-	var left := maxf(WINDOW_SECONDS - _t, 0.0)
+	var left := maxf(WINDOW_SECONDS * PlayerData.difficulty_factor("window") - _t, 0.0)
 	if _practice:
-		left = WINDOW_SECONDS
+		left = WINDOW_SECONDS * PlayerData.difficulty_factor("window")
 		_time_bar.text = "PRACTICE SHOT  -  NO CLOCK"
 	else:
 		_time_bar.text = "WINDOW CLOSES IN  %d s" % int(ceil(left))
@@ -641,7 +678,7 @@ func _fire() -> void:
 		photo["pass"] = String(sun.get("id", ""))
 		photo["crater"] = crater_id
 	_attempts[_lens] += 1
-	var tip := "Center the three rings next time."
+	var tip := "Center the dark basin next time."
 	var low := framing
 	if sharp < low:
 		low = sharp
@@ -780,8 +817,8 @@ func _show_tag() -> void:
 	_panel.add_child(dim)
 	# Sparkles from the Y2K decoration pack flank the evidence panel (beside it, never over it)
 	var spark := Decor.frame_layer(_panel)
-	Decor.add(spark, "decor_chrome_star_cluster", Rect2(120, 400, 260, 260), {"pulse": 0.6})
-	Decor.add(spark, "decor_chrome_star_cluster", Rect2(1540, 400, 260, 260), {"pulse": 0.6, "flip_h": true})
+	pass
+	pass
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_panel.add_child(center)
@@ -829,7 +866,7 @@ func _show_tag() -> void:
 		thumb.custom_minimum_size = Vector2(430, 262)
 		cc.add_child(thumb)
 		cc.add_child(UiStyle.mono_label("%s   %s" % [LENS_NAME[k], "*".repeat(int(ph["stars"]))], 16, UiStyle.PHOSPHOR))
-		for kv in [["GAME CLOCK", "%d min into operations (GAME)" % maxi(int(ph["met"]) - 34, 0)], ["TARGET", "%s (simulated)" % target["name"]], ["VIEW", "From the observation window"], ["SOURCE", "Your ship's camera (game)"], ["CONFIDENCE", String(ph["confidence"])]]:
+		for kv in [["GAME CLOCK", "%d min into operations (GAME)" % maxi(int(ph["met"]) - 34, 0)], ["TARGET", ("%s (simulated)" if _is_crater() else "%s (NASA's real view)") % target["name"]], ["VIEW", "From the observation window"], ["SOURCE", "Your ship's camera (game)" if _is_crater() else "A crop of NASA's view, framed by you (game scores)"], ["CONFIDENCE", String(ph["confidence"])]]:
 			cc.add_child(UiStyle.mono_label("%-10s %s" % [kv[0], kv[1]], 13, Color(UiStyle.NEAR_WHITE, 0.8)))
 		var br := HBoxContainer.new()
 		br.add_theme_constant_override("separation", 8)

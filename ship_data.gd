@@ -11,8 +11,8 @@ class_name ShipData
 
 const RULES := {
 	"bays": 6,
-	"mass_limit": 18,
-	"budget_limit": 45,
+	"mass_limit": 20,
+	"budget_limit": 50,
 	"base_power": 6,
 	"wing_power": 3,
 	"wing_mass": 1,
@@ -53,7 +53,7 @@ const ROOMS: Array[Dictionary] = [
 	{"id": "galley", "short": "GALLEY", "name": "Galley", "mass": 2, "power": 1, "cost": 4, "provides": ["food"], "blurb": "Prepare and secure crew meals."},
 	{"id": "crew-quarters", "short": "CREW QUARTERS", "name": "Crew Quarters", "mass": 3, "power": 1, "cost": 5, "provides": ["sleep"], "blurb": "Schedule crew rest and quiet time."},
 	{"id": "hygiene", "short": "HYGIENE", "name": "Hygiene Bay", "mass": 2, "power": 1, "cost": 4, "provides": ["waste"], "blurb": "Handle waste and personal hygiene."},
-	{"id": "medical", "short": "MEDICAL", "name": "Medical Bay", "mass": 2, "power": 1, "cost": 5, "provides": ["medical"], "blurb": "Assess a crew health event."},
+	{"id": "medical", "short": "MEDICAL", "name": "Medical Bay", "mass": 2, "power": 1, "cost": 5, "provides": ["medical"], "blurb": "Treat hurt or sick crew in flight."},
 	{"id": "cargo", "short": "CARGO", "name": "Cargo Bay", "mass": 2, "power": 0, "cost": 3, "provides": ["stowage"], "blurb": "Secure supplies before maneuvers."},
 	{"id": "science-lab", "short": "SCIENCE LAB", "name": "Science Lab", "mass": 3, "power": 2, "cost": 5, "provides": [], "blurb": "Compare evidence and prepare findings."},
 	{"id": "exercise", "short": "EXERCISE", "name": "Exercise Bay", "mass": 2, "power": 1, "cost": 4, "provides": [], "blurb": "Fit a workout into the crew schedule."},
@@ -90,6 +90,7 @@ const STARTERS: Array[Dictionary] = [
 ## "lab racks") the line was rewritten or left as a game note.
 const INFO := {
 	"flight-deck": {
+		"real": "REAL: flight computers. Basic 5 kg, 10 W, $5M. Radiation-hardened 8 kg, 15 W, $12M. Autonomous 12 kg, 20 W, $22M (copes with delayed commands). NASA SmallSat Institute, avionics.",
 		"why": "Someone has to fly it. Without flight controls the ship cannot be steered.",
 		"do": "Steer, monitor the route, and launch.",
 		"flight": "Steadier camera in the Moon photo: 20% less shake.",
@@ -103,11 +104,13 @@ const INFO := {
 		"source": "NASA life support systems (ECLSS)",
 	},
 	"communications": {
+		"real": "REAL: antennas. Small 100 kg, 0.2 kW, $20M. Medium dish 300 kg, 0.8 kW, $65M. Large dish 900 kg, 3 kW, $250M (needs accurate pointing). NASA SmallSat Institute, communications.",
 		"why": "A photo nobody receives is worth nothing. Radio is how the evidence gets home.",
 		"do": "Log sightings and send a report.",
 		"game": "A dedicated radio room is a game choice, so there is no NASA claim here.",
 	},
 	"observation": {
+		"real": "REAL: visible camera 9 kg, 15 W, 25 MB per image, $6M. Precision pointing 25 kg, 30 W, about 0.05 degrees. NASA SmallSat Institute, guidance and control.",
 		"why": "Your contract is a photograph. You need a window to see the Moon.",
 		"do": "Frame the target and capture a shot.",
 		"nasa": "The space station has an observation deck known as the Cupola. This room is a game version of that idea.",
@@ -138,8 +141,8 @@ const INFO := {
 		"source": "NASA: living inside Orion",
 	},
 	"medical": {
-		"why": "Crews need basic medical care. A kit can cover it, and a bay gives more room.",
-		"do": "Assess a crew health event.",
+		"why": "A kit covers first aid. A bay lets you treat hurt or sick crew in flight.",
+		"do": "Walk a hurt or sick crew member here in flight and press E to treat them.",
 		"nasa": "Orion carries a medical kit with first-aid items and diagnostic tools. The patient platform is a game option.",
 		"source": "NASA: living inside Orion",
 	},
@@ -149,6 +152,7 @@ const INFO := {
 		"game": "A game room for securing supplies. We could not confirm a NASA detail for it, so none is claimed.",
 	},
 	"science-lab": {
+		"real": "REAL: spectrometer 15 kg, 25 W, 5 MB per observation, $14M. Thermal infrared imager 20 kg, 35 W, $14M. Team spacecraft sheet.",
 		"why": "Contracts that compare evidence need it. The Orientale contract does not.",
 		"do": "Compare evidence and prepare findings.",
 		"flight": "A third try with each lens in the Moon photo.",
@@ -169,6 +173,7 @@ const INFO := {
 		"source": "NASA: living inside Orion",
 	},
 	"wing": {
+		"real": "REAL: solar arrays. Small 300 W at 1 AU, 400 kg, $60M. Large 1,000 W, 3,500 kg, $650M. Output falls with distance from the Sun. NASA SmallSat Institute, power.",
 		"why": "More power for the ship, for a little weight.",
 		"do": "Nothing to do. It works on its own.",
 		"flight": "More wings widen the radio beam, so the signal locks on more easily.",
@@ -176,11 +181,13 @@ const INFO := {
 		"source": "NASA Orion European Service Module",
 	},
 	"wide": {
+		"real": "REAL: visible camera 9 kg, 15 W, 25 MB per image, $6M. Team spacecraft sheet.",
 		"why": "A lens frames the shot. Either lens is enough to take the photo.",
 		"do": "Frames the wide shot.",
 		"game": "Game equipment.",
 	},
 	"close": {
+		"real": "REAL: visible camera 9 kg, 15 W, 25 MB per image, $6M. Team spacecraft sheet.",
 		"why": "A lens frames the shot. Either lens is enough to take the photo.",
 		"do": "Frames the close-up tile.",
 		"game": "Game equipment.",

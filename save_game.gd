@@ -29,7 +29,20 @@ static func apply(pd, d: Dictionary) -> bool:
 	for x in c.get("done", []):
 		done.append(int(x))
 	var camp := {"done": done, "locked": bool(c.get("locked", false)), "over": bool(c.get("over", false)), "won": bool(c.get("won", false)),
-		"over_reason": String(c.get("over_reason", "")), "crew_chosen": bool(c.get("crew_chosen", false))}
+		"over_reason": String(c.get("over_reason", "")), "crew_chosen": bool(c.get("crew_chosen", false)),
+		"log": [], "memorial": [], "studied": [], "briefed": bool(c.get("briefed", false)), "debrief": int(c.get("debrief", -1)),
+		"difficulty": clampi(int(c.get("difficulty", 1)), 0, 2), "points": int(c.get("points", 0))}
+	for e in c.get("log", []):
+		if e is Dictionary:
+			var d2: Dictionary = (e as Dictionary).duplicate()
+			d2["id"] = int(d2.get("id", 0))
+			d2["score"] = int(d2.get("score", 70))
+			camp["log"].append(d2)
+	for mm in c.get("memorial", []):
+		if mm is Dictionary:
+			camp["memorial"].append((mm as Dictionary).duplicate())
+	for sp in c.get("studied", []):
+		camp["studied"].append(String(sp))
 	var crew: Array[Dictionary] = []
 	for x in d["crew"]:
 		if not (x is Dictionary):

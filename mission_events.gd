@@ -37,6 +37,15 @@ const POOL: Array[Dictionary] = [
 			{"label": "Wait for it to come back", "time": 5.0, "power": 0.0},
 			{"label": "Re-aim the dish by hand", "time": 2.0, "power": 3.0},
 		]},
+	{"id": "rations", "title": "FOOD RUNNING LOW",
+		"text": "A ration crate was crushed in the lockers. There is less food than planned.",
+		"choices": [
+			{"label": "Cook a proper meal in the Galley", "time": 4.0, "power": 1.0, "needs_any": ["galley"],
+				"needs_why": "The ship has no Galley. The kit only has a food warmer."},
+			{"label": "Cut rations and keep working", "time": 0.0, "power": 0.0,
+				"hurt_all": {"amount": 10.0, "chance": 1.0, "short": "Short rations",
+					"reason": "The crew worked on cut rations and wore down."}},
+		]},
 	{"id": "illness", "title": "{who} IS ILL",
 		"text": "{who} has a fever and is struggling to work.",
 		"choices": [
@@ -61,6 +70,15 @@ static func pick(run: MissionRun, count: int) -> Array[Dictionary]:
 		var tmp := ids[i]
 		ids[i] = ids[j]
 		ids[j] = tmp
+	# Looking after the crew matters: with two or more events, one of them is always a health event
+	if count >= 2:
+		var ill := -1
+		for i in POOL.size():
+			if String(POOL[i]["id"]) == "illness":
+				ill = i
+		if ill >= 0 and not ids.slice(0, count).has(ill):
+			ids.erase(ill)
+			ids.insert(run.rng.randi_range(0, count - 1), ill)
 	var out: Array[Dictionary] = []
 	for k in mini(count, ids.size()):
 		var ev: Dictionary = (POOL[ids[k]] as Dictionary).duplicate(true)

@@ -1331,6 +1331,8 @@ func perks_line(task: Dictionary) -> String:
 		if bits.is_empty():
 			return "YOUR SHIP: no camera bonuses. A Flight Deck and a pilot steady the camera."
 		return "YOUR SHIP BOUGHT YOU: steadier camera, shake x%.2f  (%s)" % [float(perks["shake"]), ", ".join(bits)]
+	if kind == "heal":
+		return "YOUR SHIP BOUGHT YOU: a Medical Bay. Treatment mends +30 health. Hurt crew are shown in coral; steer them here."
 	if kind == "send":
 		var w := state.wings
 		if w <= 0:

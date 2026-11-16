@@ -37,7 +37,10 @@ Last checked: 15 November 2026 (pages as they read on that date; NASA marks the 
 | Sound effects | Synthesised in code (`sfx.gd`). |
 | Music (`assets/audio/music/classical_*.mp3`) | Copied from the team's earlier web prototype, whose disclosure says they are original synthesised piano and strings with no copyrighted samples. **Provenance is not independently confirmed.** |
 | NASA insignia, logo, "meatball", worm | **Not used.** No NASA logo file is in `assets/`. The word "NASA" appears only in source credits and REAL labels. |
-| Real NASA images | **One bundled:** NASA's annotated far-side view from the Artemis II flyby (`assets/nasa/`, credit in `assets/nasa/CREDITS.md`), shown in the report and used in the Orientale comparison. Licence still to be confirmed by the team. |
+| Real NASA images | **One bundled:** NASA's annotated far-side view from the Artemis II flyby (`assets/nasa/`, credit in `assets/nasa/CREDITS.md`), shown in the report, used as the live camera view in the Orientale photo (the photo is a crop of it, framed and scored by the game), and used in the Orientale comparison. Licence still to be confirmed by the team. |
+
+## Real spacecraft numbers
+The Build inspector shows a REAL line on the flight deck, communications, observation bay, science lab, solar wings and lenses. The numbers come from the team's spacecraft sheet (kept in REAL-SPACECRAFT-SHEET.md), which cites NASA SmallSat Institute State of the Art pages. They have **not** been checked against those pages. Items flagged CHECK in that file (the 3,180 kWh large battery, the 20,000 kg hardened frame, the RTG mass, and bare "$" amounts read as $M) must be confirmed before submission. Game units stay GAME numbers.
 
 ## Unresolved for the team before submission
 
@@ -46,4 +49,4 @@ Last checked: 15 November 2026 (pages as they read on that date; NASA marks the 
 3. Confirm whether the AI-generated art meets the challenge rules on AI content, and mark it as AI-generated where the rules ask.
 4. Decide a project licence and add a LICENSE file.
 5. Add the exact credit line for every NASA/LROC image if any is added.
-6. Check that the fictional framing ("inspired by Artemis II") appears on the title or credits page.
+6. DONE: the fictional framing ("a fictional educational mission inspired by Artemis II. NASA does not endorse it.") is in the title page's credits box and in every saved report.

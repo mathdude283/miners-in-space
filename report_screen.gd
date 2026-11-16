@@ -77,6 +77,16 @@ func _build(layer: Control) -> void:
 	_layer_ref = layer
 	var run: MissionRun = PlayerData.run
 	var m: Dictionary = Missions.get_mission(PlayerData.current_mission())
+	# the team's Drive banner, centred at the top (artwork only: the words are drawn by the game)
+	var ban := TextureRect.new()
+	ban.texture = load("res://assets/ui/kit/banner_mission_report.png")
+	ban.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ban.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ban.position = Vector2(700, 6)
+	ban.size = Vector2(540, 180)
+	ban.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ban.modulate = Color(1, 1, 1, 0.9)
+	layer.add_child(ban)
 	var head := UiStyle.heading("MISSION REPORT")
 	head.position = Vector2(100, 40)
 	head.size = Vector2(900, 50)
@@ -118,6 +128,16 @@ func _build(layer: Control) -> void:
 
 	# Middle: the finding and what happened
 	var mid := _panel(Vector2(770, 140), Vector2(560, 700))
+	if PlayerData.campaign["done"].has(PlayerData.current_mission()) and run != null and not run.partial:
+		var bd := TextureRect.new()
+		bd.texture = load("res://assets/ui/kit/badge_trophy.png")
+		bd.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		bd.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		bd.custom_minimum_size = Vector2(0, 84)
+		mid.add_child(bd)
+		mid.add_child(UiStyle.mono_label("CONTRACT COMPLETE", 14, UiStyle.PHOSPHOR))
+	if run != null:
+		_grade_block(mid, run)
 	mid.add_child(UiStyle.mono_label("THE FINDING", 14, UiStyle.PHOSPHOR))
 	var lines := finding_lines(run)
 	for l in lines:
@@ -171,17 +191,69 @@ func _build(layer: Control) -> void:
 	go.custom_minimum_size = Vector2(420, 100)
 	go.position = Vector2(1380, 880)
 	go.focus_mode = Control.FOCUS_NONE
-	go.pressed.connect(func(): get_tree().change_scene_to_file(next_scene))
+	go.pressed.connect(func(): get_tree().change_scene_to_file("res://ending_screen.tscn" if bool(PlayerData.campaign["over"]) else next_scene))
 	layer.add_child(go)
 
 
 ## A needed shot with its four separate outcomes: captured, tagged, received, meets the contract criteria.
+## The grade for this flight: a big letter, the points, and each category against its maximum.
+func _grade_block(parent: VBoxContainer, run: MissionRun) -> void:
+	var sb := ScoreBoard.compute(run, PlayerData.current_mission(), int(PlayerData.campaign.get("difficulty", 1)))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 18)
+	var letter := UiStyle.heading(String(sb["grade"]))
+	letter.add_theme_font_size_override("font_size", 64)
+	letter.add_theme_color_override("font_color", UiStyle.PHOSPHOR if String(sb["grade"]) in ["A", "B"] else (UiStyle.AMBER if String(sb["grade"]) in ["C", "D"] else UiStyle.CORAL))
+	head.add_child(letter)
+	var tv := VBoxContainer.new()
+	tv.add_child(UiStyle.mono_label("MISSION GRADE   %d%%" % int(sb["percent"]), 15, UiStyle.NEAR_WHITE))
+	tv.add_child(UiStyle.mono_label("%d POINTS   (%d x %.2f %s)" % [int(sb["points"]), int(sb["total"]), float(sb["mult"]), String(sb["difficulty"])], 14, UiStyle.AMBER))
+	head.add_child(tv)
+	parent.add_child(head)
+	# the letter slams in, with a sound that matches the grade
+	letter.pivot_offset = Vector2(24, 40)
+	letter.scale = Vector2(3.2, 3.2)
+	letter.modulate.a = 0.0
+	var tw := create_tween().set_parallel()
+	tw.tween_property(letter, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(0.5)
+	tw.tween_property(letter, "modulate:a", 1.0, 0.2).set_delay(0.5)
+	get_tree().create_timer(0.7).timeout.connect(func(): Sfx.play("fanfare" if String(sb["grade"]) in ["A", "B"] else ("chime_ok" if String(sb["grade"]) in ["C", "D"] else "fail")))
+	# a personal best, when this computer is keeping score
+	if PlayerData.autosave_enabled and PlayerData.campaign["done"].has(PlayerData.current_mission()):
+		var rb := ScoreBoard.record_best(PlayerData.current_mission(), int(sb["points"]))
+		if bool(rb["new_best"]):
+			tv.add_child(UiStyle.mono_label("NEW PERSONAL BEST!", 14, UiStyle.PHOSPHOR))
+		elif not bool(rb["first"]):
+			tv.add_child(UiStyle.mono_label("YOUR BEST  %d" % int(rb["best"]), 13, Color(UiStyle.NEAR_WHITE, 0.7)))
+	var bl := ScoreBoard.badges(sb, run)
+	if not bl.is_empty():
+		var br := HBoxContainer.new()
+		br.add_theme_constant_override("separation", 10)
+		for bd in bl:
+			var cell := VBoxContainer.new()
+			var t := TextureRect.new()
+			t.texture = load("res://assets/ui/kit/%s.png" % String(bd["file"]))
+			t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			t.custom_minimum_size = Vector2(62, 52)
+			t.tooltip_text = String(bd["why"])
+			cell.add_child(t)
+			var cap := UiStyle.mono_label(String(bd["name"]), 9, UiStyle.AMBER)
+			cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			cell.add_child(cap)
+			br.add_child(cell)
+		parent.add_child(br)
+	for r in sb["rows"]:
+		var l := UiStyle.mono_label("%-11s %3d / %d" % [String(r["name"]), int(r["pts"]), int(r["max"])], 13, UiStyle.PHOSPHOR if float(r["pts"]) >= 0.8 * float(r["max"]) else Color(UiStyle.NEAR_WHITE, 0.8))
+		parent.add_child(l)
+
+
 ## One real NASA observation beside the player's simulated evidence. Clearly labelled REAL and SIMULATED, with its credit and source.
 func _nasa_block(parent: VBoxContainer, run: MissionRun) -> void:
 	var cid := PlayerData.current_mission()
 	if cid > 1:
 		return
-	parent.add_child(UiStyle.mono_label("REAL NASA VIEW   (your photos above are SIMULATED)", 13, UiStyle.AMBER))
+	parent.add_child(UiStyle.mono_label("REAL NASA VIEW   (your photos above are crops of it, scored by the game)" if cid == 0 else "REAL NASA VIEW   (your photos above are SIMULATED)", 13, UiStyle.AMBER))
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 14)
 	parent.add_child(h)
@@ -258,7 +330,7 @@ func _row_card(e: Dictionary) -> Control:
 	v.add_theme_constant_override("separation", 3)
 	h.add_child(v)
 	var meets := bool(e["meets"])
-	v.add_child(UiStyle.mono_label("%s   %s   %s" % [String(e["label"]), "SIMULATED PHOTO", ("*".repeat(int(e["stars"])) if int(e["stars"]) > 0 else "")], 14, UiStyle.NEAR_WHITE))
+	v.add_child(UiStyle.mono_label("%s   %s   %s" % [String(e["label"]), ("PHOTO: NASA VIEW, GAME SCORES" if PlayerData.current_mission() == 0 else "SIMULATED PHOTO"), ("*".repeat(int(e["stars"])) if int(e["stars"]) > 0 else "")], 14, UiStyle.NEAR_WHITE))
 	var st := EvidenceCheck.stage_text(e)
 	for kv in [["CAPTURED", st["captured"], bool(e["captured"])], ["TAGGED", st["tagged"], bool(e["tag_ok"])], ["RECEIVED", st["received"], bool(e["received"])], ["MEETS CRITERIA", st["meets"], meets]]:
 		var line := UiStyle.mono_label("%-15s %s" % [kv[0], kv[1]], 14, UiStyle.PHOSPHOR if kv[2] else UiStyle.CORAL)
@@ -409,7 +481,7 @@ static func build_text(run: MissionRun, m: Dictionary) -> String:
 			if bool(e.get("needed", false)):
 				any = any or bool(e["received"])
 				var st := EvidenceCheck.stage_text(e)
-				t.append("- %s (simulated player photo): captured %s; tagged %s; %s; meets contract criteria %s. Framed %d%%, steady %d%%, light %d%%." % [String(e["label"]), st["captured"].to_lower(), st["tagged"].to_lower(), st["received"].to_lower(), st["meets"].to_lower(), int(float(e["framing"]) * 100.0), int(float(e["sharp"]) * 100.0), int(float(e["light"]) * 100.0)])
+				t.append("- %s (%s): captured %s; tagged %s; %s; meets contract criteria %s. Framed %d%%, steady %d%%, light %d%%." % [String(e["label"]), "player photo cropped from NASA's real view" if int(m.get("id", 0)) == 0 else "simulated player photo", st["captured"].to_lower(), st["tagged"].to_lower(), st["received"].to_lower(), st["meets"].to_lower(), int(float(e["framing"]) * 100.0), int(float(e["sharp"]) * 100.0), int(float(e["light"]) * 100.0)])
 				for pr in e["problems"]:
 					t.append("    * " + String(pr))
 			elif bool(e.get("received", false)):
@@ -443,7 +515,7 @@ static func build_text(run: MissionRun, m: Dictionary) -> String:
 	t.append("- Real image: NASA's annotated far-side view from the Artemis II lunar flyby (Orientale Basin and Ohm are labelled). Credit: NASA. Source: https://www.nasa.gov/blogs/missions/2026/04/06/artemis-ii-flight-day-6-lunar-flyby-updates/")
 	if run != null and not run.nasa_compare.is_empty():
 		t.append("- Your comparison: dark basin interior found: %s; bright rings found: %s." % ["yes" if run.nasa_compare.get("interior", false) else "no", "yes" if run.nasa_compare.get("rings", false) else "no"])
-	t.append("- The photos above are SIMULATED by the game. They are not NASA imagery.")
+	t.append("- Contract 01 photos are crops of NASA's real far-side view, framed and scored by the game. Other simulated views are not NASA imagery." if int(m.get("id", 0)) == 0 else "- The photos above are SIMULATED by the game. They are not NASA imagery.")
 	t.append("")
 	t.append("## Sources")
 	t.append("- NASA Artemis II press kit (countdown, ascent, flyby, holds): https://www.nasa.gov/artemis-ii-press-kit/")

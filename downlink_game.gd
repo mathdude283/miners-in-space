@@ -19,6 +19,8 @@ const LOS_WINDOWS := [[11.0, 17.0]]
 const PACKETS := {"wide": 8, "close": 10}
 const CENTER := Vector2(520, 560)
 const PULSE: Texture2D = preload("res://assets/ui/play/overlay_radio_signal_pulse.png")
+const LOSS: Texture2D = preload("res://assets/ui/kit/moonbound05_loss_of_signal.png")   # the team's planned-loss-of-signal art (Drive)
+const GLOBE: Texture2D = preload("res://assets/ui/kit/globe_hologram.png")   # the team's Earth hologram (Drive)
 
 ## What the ship gives you (GAME rules): beam is how wide the radio lock is.
 var perks := {"beam": 0.30, "rows": []}
@@ -34,6 +36,7 @@ var _sent: Array[String] = []
 var _fast := false                         # data rate: SLOW is forgiving, FAST needs a better aim
 var _rate_btn: Button
 var _coach: Label
+var _coach_panel: CoachPanel
 var _ever_locked := false
 var _deco: Control
 var _was_locked := false
@@ -124,8 +127,8 @@ func _show_brief() -> void:
 	_panel = center
 	# Y2K decoration pack from the team Drive, beside the panel (never over it, never clickable)
 	_deco = Decor.frame_layer(self, center)
-	Decor.add(_deco, "glossy_radar_burst", Rect2(80, 360, 360, 360), {"alpha": 0.95, "spin": 60.0})
-	Decor.add(_deco, "glossy_orbital_chrome_cluster", Rect2(1480, 360, 360, 360), {"alpha": 0.95, "bob": 7.0})
+	pass
+	pass
 	var p := PanelContainer.new()
 	p.custom_minimum_size = Vector2(980, 0)
 	p.add_theme_stylebox_override("panel", UiStyle.panel(30, 0.95))
@@ -246,12 +249,10 @@ func _build_hud() -> void:
 	_update_rate_button()
 	_status = UiStyle.mono_label("AIM AT EARTH", 22, UiStyle.AMBER)
 	qc.add_child(_status)
-	_coach = Label.new()
-	_coach.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_coach.custom_minimum_size = Vector2(0, 80)
-	_coach.add_theme_font_size_override("font_size", 20)
-	_coach.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.92))
-	qc.add_child(_coach)
+	_coach_panel = CoachPanel.new(740.0, 20)
+	_coach = _coach_panel.label
+	qc.add_child(_coach_panel)
+	_coach_panel.set_steps(["AIM", "KEEP IT THERE", "FULL BAR"], 0)
 	_rebuild_queue()
 
 
@@ -340,6 +341,12 @@ func _draw_bar(bar: Control, lens: String) -> void:
 # ---------------------------------------------------------------- the link
 
 func _draw_earth(s: Control, c: Vector2, r: float) -> void:
+	# The team's Earth hologram (Drive art), sized to the old ball so the lock rules are unchanged
+	var gs := Vector2(GLOBE.get_width(), GLOBE.get_height()) * (r * 2.9 / float(GLOBE.get_width()))
+	s.draw_circle(c, r + 10.0, Color(0.3, 0.6, 1.0, 0.12))
+	s.draw_texture_rect(GLOBE, Rect2(c - gs * 0.5, gs), false)
+	if true:
+		return
 	s.draw_circle(c, r + 10.0, Color(0.3, 0.6, 1.0, 0.12))
 	s.draw_circle(c, r + 4.0, Color(0.4, 0.7, 1.0, 0.25))
 	s.draw_circle(c, r, Color(0.05, 0.2, 0.62, 1))
@@ -400,6 +407,9 @@ func _draw_scope() -> void:
 				s.draw_arc(mp + cr[0], cr[1], 0, TAU, 28, Color(0.3, 0.33, 0.42, 0.8), 3.0, true)
 			s.draw_arc(mp, 150.0, 0, TAU, 64, Color(UiStyle.CHROME, 0.7), 3.0, true)
 			s.draw_string(UiStyle.MONO, mp + Vector2(-30, 6), "MOON", HORIZONTAL_ALIGNMENT_CENTER, 60, 16, Color(0.1, 0.12, 0.2, 0.9))
+	if _los:
+		# The team's planned-loss-of-signal artwork fades in while the Moon blocks contact
+		s.draw_texture_rect(LOSS, Rect2(Vector2(20, 14), Vector2(860, 278)), false, Color(1, 1, 1, 0.55))
 	# Ship: a chrome hull seen from above
 	var hull := PackedVector2Array([o + Vector2(-46, 0), o + Vector2(-26, -20), o + Vector2(30, -20), o + Vector2(52, 0), o + Vector2(30, 20), o + Vector2(-26, 20)])
 	s.draw_colored_polygon(hull, Color(0.46, 0.52, 0.7, 1))
@@ -511,13 +521,23 @@ func _process(delta: float) -> void:
 	else:
 		tip = "Sending. Keep following Earth. The bars fill while the beam is on it."
 	_coach.text = tip
+	var any_full := false
+	for lens in _order:
+		if float(_progress[lens]) >= float(_need(lens)):
+			any_full = true
+	var step := 0
+	if _los:
+		step = -1
+	elif _signal > _lock_needed():
+		step = 2 if any_full else 1
+	_coach_panel.set_steps(["AIM", "KEEP IT THERE", "FULL BAR"], step)
 	if _goal != null:
 		var got := 0
 		for lens in _order:
 			if float(_progress[lens]) >= float(_need(lens)):
 				got += 1
 		_goal.text = "GOAL: get every photo to Earth before the window closes     RECEIVED %d / %d" % [got, _order.size()]
-	_timer.text = "DOWNLINK WINDOW  %d s" % int(ceil(maxf(WINDOW - _t, 0.0)))
+	_timer.text = "DOWNLINK WINDOW  %d s" % int(ceil(maxf(WINDOW * PlayerData.difficulty_factor("window") - _t, 0.0)))
 	_scope.queue_redraw()
 	for k in _bars:
 		_bars[k].queue_redraw()
@@ -525,7 +545,7 @@ func _process(delta: float) -> void:
 	for lens in _order:
 		if float(_progress[lens]) < float(_need(lens)):
 			all_in = false
-	if _t >= WINDOW or all_in:
+	if _t >= WINDOW * PlayerData.difficulty_factor("window") or all_in:
 		_done()
 
 
@@ -545,8 +565,8 @@ func _done() -> void:
 		_goal = null
 	if not received.is_empty():
 		var spark := Decor.frame_layer(self)
-		Decor.add(spark, "decor_chrome_star_cluster", Rect2(300, 330, 230, 230), {"pulse": 0.6})
-		Decor.add(spark, "decor_chrome_star_cluster", Rect2(1390, 330, 230, 230), {"pulse": 0.6, "flip_h": true})
+		pass
+		pass
 	_scope.queue_free()
 	_panel.queue_free()
 	var center := CenterContainer.new()

@@ -26,6 +26,7 @@ var _left: VBoxContainer
 var _status: Label
 var _lock_btn: Button
 var _group_colors := {}
+var _reveal_box: VBoxContainer
 const PALETTE := [Color("c8ff36"), Color("ffc45e"), Color("6fb4ff"), Color("ff8fd0"), Color("9be7c4"), Color("c9a0ff")]
 
 
@@ -44,9 +45,18 @@ func _ready() -> void:
 		_group_colors[g] = PALETTE[gi % PALETTE.size()]
 		gi += 1
 	var dim := ColorRect.new()
-	dim.color = Color(0.01, 0.02, 0.07, 0.98)
+	dim.color = Color(0.01, 0.02, 0.07, 1.0)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
+	var art := TextureRect.new()
+	art.texture = load("res://assets/ui/select/bg_earth_orbit.png")
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	art.modulate = Color(1, 1, 1, 0.28)
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(art)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right"]:
@@ -124,7 +134,8 @@ func _chip_text(g: String) -> String:
 
 func _rebuild_right() -> void:
 	for c in _right.get_children():
-		c.queue_free()
+		if c != _reveal_box:
+			c.queue_free()
 	if _cands.is_empty():
 		_right.add_child(_label("Nothing positive arrived: no candidate sightings. A review with nothing to review is complete.", 22, UiStyle.AMBER, 860))
 		return
@@ -137,7 +148,7 @@ func _rebuild_right() -> void:
 		var done: bool = _verdicts.has(c["id"])
 		b.text = "%s  %s%s" % [c["id"], _span(c["t"]), "  (done)" if done else ""]
 		b.theme_type_variation = &"PrimaryButton" if i == _sel else &"OutlineButton"
-		b.add_theme_font_size_override("font_size", 20)
+		b.add_theme_font_size_override("font_size", 17)
 		b.custom_minimum_size = Vector2(0, 60)
 		b.focus_mode = Control.FOCUS_NONE
 		b.pressed.connect(func():
@@ -172,6 +183,8 @@ func _rebuild_right() -> void:
 		b.focus_mode = Control.FOCUS_NONE
 		b.pressed.connect(func(): set_verdict(String(c["id"]), v))
 		vb.add_child(b)
+	if _reveal_box != null:
+		_right.move_child.call_deferred(_reveal_box, -1)
 	if _locked and not _eval.is_empty():
 		for res in _eval["results"]:
 			if res["candidate"] == c["id"]:
@@ -286,9 +299,9 @@ func _show_reveal() -> void:
 	var rev := {}
 	if run_known:
 		rev = ImpactReview.reveal(case, map, _eval, budget, sent_cost)
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
-	_left.add_child(box)
+	_reveal_box = VBoxContainer.new()
+	_reveal_box.add_theme_constant_override("separation", 8)
+	_right.add_child(_reveal_box)
 	if run_known:
 		var show := Button.new()
 		show.text = "REVEAL WHAT REALLY HAPPENED"
@@ -298,18 +311,18 @@ func _show_reveal() -> void:
 		show.focus_mode = Control.FOCUS_NONE
 		show.pressed.connect(func():
 			show.hide()
-			_reveal_text(box, rev))
-		box.add_child(show)
+			_reveal_text(_reveal_box, rev))
+		_reveal_box.add_child(show)
 	else:
-		box.add_child(_label("The reveal needs the flyer's run record, which stays on the flyer's computer. Send your review file back to the flyer.", 18, UiStyle.AMBER, 820))
+		_reveal_box.add_child(_label("The reveal needs the flyer's run record, which stays on the flyer's computer. Send your review file back to the flyer.", 18, UiStyle.AMBER, 860))
 	var done := Button.new()
 	done.text = "DONE"
 	done.theme_type_variation = &"PrimaryButton"
 	done.add_theme_font_size_override("font_size", 26)
-	done.custom_minimum_size = Vector2(0, 70)
+	done.custom_minimum_size = Vector2(0, 80)
 	done.focus_mode = Control.FOCUS_NONE
 	done.pressed.connect(func(): finished.emit({"complete": bool(_eval["complete"]), "eval": _eval, "reveal": rev, "verdicts": _verdicts.duplicate(true)}))
-	box.add_child(done)
+	_left.add_child(done)
 
 
 func _reveal_text(box: VBoxContainer, rev: Dictionary) -> void:
@@ -322,9 +335,6 @@ func _reveal_text(box: VBoxContainer, rev: Dictionary) -> void:
 	for t in rev["could_support"]:
 		box.add_child(_label(String(t), 16, UiStyle.NEAR_WHITE, 820))
 	box.add_child(_label("LESSON FOR THE FLYER:  " + String(rev["lesson"]), 17, UiStyle.PHOSPHOR, 820))
-	var parent: Node = box.get_parent()
-	if parent != null:
-		box.move_child(box.get_child(box.get_child_count() - 1), box.get_child_count() - 1)
 
 
 # ---------------------------------------------------------------- drawings

@@ -10,6 +10,11 @@ Rule for the order: every phase ends with a game that could be submitted as it s
 - **Collaboration**: credits, AI disclosure and sources panel complete.
 - **Playable by a stranger** in one sitting without help, from the title to the final report, and it does not lose their progress.
 
+## Progress (updated 15 Nov 2026)
+- DONE: local commits protect earlier work (never pushed); one-command tests (`powershell -ExecutionPolicy Bypass -File tests
+un_tests.ps1`, 20 test files); save and Continue (autosave after crew choice, contract end, crew loss; Continue and New Campaign on the title; `save_game.gd`); Contract 03 Impact Watch playable (see IMPACT-WATCH-DESIGN.md).
+- NOT DONE: ending flow beyond the existing winning and campaign-over screens; balance pass by a person; web export test (needs export templates and a browser check); accessibility pass; Phase 2 testing with real people; blind human test of Impact Watch.
+
 ## Phase 0: protect the work (first, short)
 - 125 files are uncommitted. Commit in logical chunks on a branch and tag it, before anything else (needs Sarah's go-ahead).
 
@@ -52,6 +57,12 @@ Spares that events use; sourced NASA launch facts (each verified first); a real 
 - **Things only a person can judge** (fun, clarity, sound): Phase 2 is built around that; scripts cannot replace it.
 - **Scope creep**: new ideas go on the "after" list, not into earlier phases.
 - **Losing work**: Phase 0.
+
+## Decisions made while finishing (15 Nov 2026)
+- **Retry for Max Q and booster separation:** a live flight has no retry (the call is made once and its result stands, like the other live calls). Practice (Mission Select, PRACTICE) lets a player repeat Max Q, separation, the photo and the radio as often as they like. Say if a live retry is wanted.
+- **Endings:** `ending_screen.gd` shows one of three endings (all contracts done, crew lost, ship cannot go on) after the last report or failed flight, with NEW CAMPAIGN and BACK TO TITLE.
+- **Limits changed to 50 budget and 20 weight** (was 45 and 18) so a Medical Bay fits: flight deck, life support, observation, comms, science lab and Medical Bay with the kit, 2 wings and the wide lens costs exactly 50, weighs 20 and makes +0 spare power. Without the Medical Bay the same ship still works with a free bay. Rebalance if that is too narrow.
+- **Health:** one of every two flight events is a health event, hurt crew are pointed to the Medical Bay, and the Build screen tells you a Medical Bay is the only way to treat crew in flight.
 
 ## Decisions needed (my defaults if no answer)
 1. Save progress: yes, one slot, autosave.

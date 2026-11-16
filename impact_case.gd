@@ -53,7 +53,7 @@ static func build_export(delivered: Array, salt: String, observers := {}) -> Dic
 		var has_pos := float(p["err"]) > 0.0
 		var name := String(observers.get(String(p["viewpoint"]), vp["label"]))
 		recs.append({
-			"id": ids[pid], "type": p["type"], "observer": "%s (%s)" % [name, vp["label"]],
+			"id": ids[pid], "type": p["type"], "observer": (String(vp["label"]) if name == String(vp["label"]) else "%s (%s)" % [name, vp["label"]]),
 			"time": [float(p["t"][0]), float(p["t"][1])],
 			"position": {"lat": float(p["lat"]), "lon": float(p["lon"]), "err": float(p["err"])} if has_pos else null,
 			"screen": [int(p["screen"][0]), int(p["screen"][1])] if has_pos and (int(p["screen"][0]) + int(p["screen"][1])) > 0 else null,

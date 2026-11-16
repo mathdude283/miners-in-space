@@ -35,10 +35,12 @@ func _initialize() -> void:
 	check("no wing fails at CLIMB (power)", f.get("name", "") == "CLIMB" and f.get("kind", "") == "power")
 
 	# Too heavy
-	var heavy := BuildState.new(); heavy.load_starter(ShipData.STARTERS[1]); heavy.set_wings(1)
+	var heavy := BuildState.new()
+	var heavy_rooms := ["flight-deck", "life-support", "science-lab", "airlock", "crew-quarters", "hygiene"]
+	for hi in heavy_rooms.size():
+		heavy.bays[hi] = heavy_rooms[hi]
+	heavy.set_wings(2)
 	heavy.kit = true; heavy.wide = true; heavy.close = true
-	heavy.remove_bay(5)
-	heavy.place_room("science-lab"); heavy.place_room("airlock")
 	var hs := heavy.totals()
 	print("  heavy totals: ", hs["mass"], " mass, cost ", hs["cost"])
 	f = _first(heavy)

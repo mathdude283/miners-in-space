@@ -6,7 +6,7 @@ PASS  good ship: no failing stage
 PASS  flyby fails at RADIO
   evidence: { "name": "CLIMB", "ok": false, "kind": "power", "why": "Not enough power: 9 used and 6 made. Systems shut down during the climb.", "fix": "Add a solar wing, or take out a room that uses power." }
 PASS  no wing fails at CLIMB (power)
-  heavy totals: 20 mass, cost 47
+  heavy totals: 23 mass, cost 51
 PASS  overweight or over budget stops LIFTOFF
 PASS  no flight deck fails CLIMB (control)
 PASS  no life support fails ORBIT

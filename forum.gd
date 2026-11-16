@@ -232,36 +232,36 @@ func start_review() -> void:
 	var score = 0.0
 	if (Q1Answer.text == "Nearby orbital observation" or
 		Q1Answer.text == "6" or
-		Q1Answer.text == "30,000kg"):
+		Q1Answer.text == "30,000 kg"):
 		total += 1
-		question1Result.text = "Passed"
+		question1Result.text = "Question 1: Passed"
 	else:
-		question1Result.text = "Failed"
+		question1Result.text = "Question 1: Failed"
 	if (Q2Answer.text == "banana"):
 		total += 1
-		question2Result.text = "Passed"
+		question2Result.text = "Question 2: Passed"
 	else:
-		question2Result.text = "Failed"
+		question2Result.text = "Question 2: Failed"
 	if (Q3Answer.text == "Wildfires"):
 		total += 1
-		question3Result.text = "Passed"
+		question3Result.text = "Question 3: Passed"
 	else:
-		question3Result.text = "Failed"
+		question3Result.text = "Question 3: Failed"
 	if (Q4Answer.text == "500 kg" or 
 		Q4Answer.text == "30,000 kg" or 
 		Q4Answer.text == "2,500 kg"):
 		total += 1
-		question4Result.text = "Passed"
+		question4Result.text = "Question 4: Passed"
 	else:
-		question4Result.text = "Failed"
+		question4Result.text = "Question 4: Failed"
 	if (Q5Answer.text == "15 W" or
 		Q5Answer.text == "8 Mb"):
 		total += 1
-		question5Result.text = "Passed"
+		question5Result.text = "Question 5: Passed"
 	else:
-		question5Result.text = "Failed"
-	score = round((total/6)*100)
-	reviewSumm.text = str(score)
+		question5Result.text = "Question 5: Failed"
+	score = round((total/5)*100)
+	reviewSumm.text = "You scored: " + str(score) +"%"
 
 func _on_back_pressed() -> void:
 	print("Back pressed!")

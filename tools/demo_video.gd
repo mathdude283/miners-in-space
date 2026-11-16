@@ -2,19 +2,88 @@ extends SceneTree
 ## Records a 30-second tour of Moonbound with Godot's Movie Maker (the game plays itself through each screen).
 ## godot --path . --write-movie build/demo.avi --fixed-fps 30 --resolution 1280x720 --script res://tools/demo_video.gd
 var _frames := 0
+var _cursor: Control
+var _cap: Label
+var _cpos := Vector2(960, 700)
+var _ripple := -1.0
+var _plan: Array = []
+const CAPTIONS := [
+	"MOONBOUND: a free educational space game inspired by NASA's Artemis II",
+	"Choose a contract and a crew, then build your own ship",
+	"Choose a contract and a crew, then build your own ship",
+	"Choose a contract and a crew, then build your own ship",
+	"Fly it yourself: photograph the REAL Orientale Basin from NASA's picture",
+	"Watch two windows for a flash. One witness is not proof",
+	"Every flight is graded: points, badges and Mission Control's quiz",
+	"Every answer explains why, with a source",
+	"Then design spacecraft for wildfires, lunar ice and Neptune, using real numbers",
+	"Bring them home, and learn real space science along the way",
+]
 var _scene: Node
 var _pd: Node
 var _step := -1
 const FPS := 30
 
 # (frame to start at, what to show)
-const TIMELINE := [0, 60, 125, 190, 255, 385, 465, 545, 625, 700]
+const TIMELINE := [0, 105, 180, 240, 315, 450, 555, 645, 705, 810]
+
+func _make_overlay() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 100
+	root.add_child(layer)
+	_cursor = Control.new()
+	_cursor.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_cursor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cursor.draw.connect(_draw_cursor)
+	layer.add_child(_cursor)
+	var panel := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.02, 0.03, 0.1, 0.88)
+	sb.set_corner_radius_all(14)
+	sb.set_content_margin_all(16)
+	sb.border_color = Color("c8ff36")
+	sb.set_border_width_all(2)
+	panel.add_theme_stylebox_override("panel", sb)
+	panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	panel.offset_bottom = -34.0
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cap = Label.new()
+	_cap.add_theme_font_size_override("font_size", 30)
+	_cap.add_theme_color_override("font_color", Color("f2f5ff"))
+	_cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel.add_child(_cap)
+	layer.add_child(panel)
+
+
+func _draw_cursor() -> void:
+	if _ripple >= 0.0:
+		var r := 18.0 + _ripple * 70.0
+		_cursor.draw_arc(_cpos, r, 0, TAU, 40, Color(0.78, 1.0, 0.21, 1.0 - _ripple), 5.0, true)
+	var pts := PackedVector2Array([_cpos, _cpos + Vector2(0, 34), _cpos + Vector2(9, 26), _cpos + Vector2(16, 40), _cpos + Vector2(23, 37), _cpos + Vector2(16, 24), _cpos + Vector2(28, 24)])
+	var shadow := PackedVector2Array()
+	for p in pts:
+		shadow.append(p + Vector2(3, 3))
+	_cursor.draw_colored_polygon(shadow, Color(0, 0, 0, 0.5))
+	_cursor.draw_colored_polygon(pts, Color.WHITE)
+	_cursor.draw_polyline(pts + PackedVector2Array([pts[0]]), Color(0.05, 0.05, 0.1), 2.0)
+
+
+func _btn(part: String) -> Vector2:
+	if _scene != null and is_instance_valid(_scene):
+		for b in _scene.find_children("*", "BaseButton", true, false):
+			if b is Button and String(b.text).to_upper().contains(part.to_upper()) and b.is_visible_in_tree():
+				return b.get_global_rect().get_center()
+	return Vector2(960, 540)
+
 
 func _initialize() -> void:
 	root.set_flag(Window.FLAG_NO_FOCUS, true)
 	_pd = root.get_node("PlayerData")
 	_pd.autosave_enabled = false
 	_pd.ai_notice_seen = true
+	_make_overlay()
 
 func _process(_delta: float) -> bool:
 	_frames += 1
@@ -35,9 +104,78 @@ func _process(_delta: float) -> bool:
 			if c.get_script() != null and c.get_script().get_global_name() == "SourcesPanel":
 				c.queue_free()
 	_during(idx, _frames - TIMELINE[idx])
-	if _frames >= 905:
+	_move_cursor(idx, _frames - TIMELINE[idx])
+	if _frames >= 902:
 		quit()
 	return false
+
+## Where the cursor goes in each step: [frame, target position (or a Callable), click?]. The cursor glides to each target.
+func _move_cursor(i: int, f: int) -> void:
+	_cap.text = CAPTIONS[i]
+	var target := _cpos
+	var click_now := false
+	match i:
+		0:
+			target = _btn("START") if f > 15 else Vector2(900, 800)
+			click_now = f == 70
+		1:
+			if f < 35:
+				target = _btn("ORIENTALE") if _scene.has_method("show_page") and false else (_scene.cards_row.get_child(0).get_global_rect().get_center() if _scene.get("cards_row") != null else target)
+				click_now = f == 28
+			else:
+				target = _btn("ACCEPT")
+				click_now = f == 62
+		2:
+			if f < 30:
+				target = _btn("PILOT")
+				click_now = f == 24
+			else:
+				target = _btn("CONTINUE TO BUILD")
+				click_now = f == 52
+		3:
+			if f < 30:
+				target = _btn("Lunar evidence ship")
+				click_now = f == 24
+			else:
+				target = _btn("FLY") 
+				click_now = f == 66
+		4:
+			var g = _scene
+			if g != null and g.get("_aim") != null:
+				target = g._aim * (Vector2(root.get_visible_rect().size) / Vector2(1920, 1080))
+			click_now = f == 45 or f == 98
+		5:
+			var w = _scene
+			if w != null and w.get("_view") != null and w._view != null:
+				target = w._view.get_global_rect().position + Vector2(412, 236) if f > 20 else _btn("FLIGHT DECK")
+			click_now = f == 52
+		6:
+			target = Vector2(1090, 330)
+			click_now = false
+		7:
+			var qc = _scene
+			if qc != null and qc.get("_order") != null and qc.get("questions") != null:
+				var kk := 0
+				for k in qc._order.size():
+					if qc._order[k] == int(qc.questions[0]["answer"]):
+						kk = k
+				if f > 5 and qc._opts.get_child_count() > kk:
+					target = (qc._opts.get_child(kk) as Control).get_global_rect().get_center()
+			click_now = f == 32
+		8:
+			target = _btn("CONTRACTS 04") if f < 45 else Vector2(560, 560)
+			click_now = f == 20
+		9:
+			target = _btn("NEW CAMPAIGN") if f > 90 else Vector2(960, 330)
+	_cpos = _cpos.lerp(target, 0.16)
+	if click_now:
+		_ripple = 0.0
+	if _ripple >= 0.0:
+		_ripple += 0.07
+		if _ripple > 1.0:
+			_ripple = -1.0
+	_cursor.queue_redraw()
+
 
 func _swap(n: Node) -> void:
 	if _scene != null and is_instance_valid(_scene):
@@ -139,11 +277,11 @@ func _during(i: int, f: int) -> void:
 			if g == null or not g.has_method("_set_hold"):
 				return
 			g._t = 1.0 if f < 5 else g._t
-			if f > 30 and f < 105:
+			if f > 15 and f < 100:
 				g._aim = g._target_at(g._t)
-			if f == 60:
+			if f == 45:
 				g._set_hold(true)
-			if f == 110:
+			if f == 98:
 				g._set_hold(false)
 		5:
 			var w = _scene
@@ -153,10 +291,10 @@ func _during(i: int, f: int) -> void:
 				w.log_sighting(412.0, 236.0)
 		7:
 			var qc = _scene
-			if qc != null and qc.has_method("answer") and f == 40:
+			if qc != null and qc.has_method("answer") and f == 34:
 				for k in qc._order.size():
 					if qc._order[k] == int(qc.questions[0]["answer"]):
 						qc.answer(k)
 		9:
-			if f == 75 and _scene.has_method("_show"):
+			if f == 50 and _scene.has_method("_show"):
 				_scene._show(_scene.beat_count() - 1)

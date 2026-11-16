@@ -167,6 +167,13 @@ func _run() -> void:
 	check("a long response wraps to more than one line", calls[0].get_line_count() >= 2)
 	check("and is not clipped or cut with an ellipsis", not calls[0].clip_text and calls[0].text_overrun_behavior != TextServer.OVERRUN_TRIM_ELLIPSIS)
 	await _snap("poll_long")
+	# a long warning beside the buttons must never squeeze the secondary button
+	pp._third.text = "The range is green, but these are no-gos on your ship: flight termination comms issue, weather, power margin and more warnings than fit on one line of text."
+	pp._secondary.text = "HOLD THE COUNT"
+	pp._secondary.show()
+	await create_timer(0.5).timeout
+	check("a long warning does not shrink the button next to it", pp._secondary.size.x >= 280.0 and pp._secondary.get_global_rect().size.y >= 56.0)
+	await _snap("poll_long_buttons")
 	pp.queue_free()
 	print("FAILS: ", fails)
 	quit(fails)

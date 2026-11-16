@@ -27,4 +27,5 @@ PASS  the coach says when contact returns
 PASS  pressing SEND FIRST changes the order
 PASS  a long response wraps to more than one line
 PASS  and is not clipped or cut with an ellipsis
+PASS  a long warning does not shrink the button next to it
 FAILS: 0

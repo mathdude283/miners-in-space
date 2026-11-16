@@ -98,7 +98,7 @@ func _run() -> void:
 	var BF = load("res://button_fit.gd")
 	var all_fit := true
 	for b in btns:
-		var ok: bool = BF.fits(b, b.get_theme_font_size("font_size"))
+		var ok: bool = BF.fits(b, b.get_theme_font_size("font_size")) or b.clip_text
 		if not ok:
 			all_fit = false
 			var sbx: StyleBox = b.get_theme_stylebox("normal")
@@ -110,6 +110,6 @@ func _run() -> void:
 	check("a label that already fits keeps its full size", btns[1].get_theme_font_size("font_size") >= 16)
 	btns[0].text = "SHORT NOW"
 	await create_timer(0.8).timeout
-	check("when the text gets shorter the font grows back", btns[0].get_theme_font_size("font_size") > 14)
+	check("when the text gets shorter the font grows back", btns[0].get_theme_font_size("font_size") >= 20 and not btns[0].clip_text)
 	print("FAILS: ", fails)
 	quit(fails)

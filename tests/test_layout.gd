@@ -40,6 +40,8 @@ func _lint(scene: Node, vp: Rect2) -> Array[String]:
 		var skip := ctl.name in SKIP_NAMES or (ctl.get_parent() != null and ctl.get_parent().name in SKIP_NAMES) or in_scroll or ctl is ColorRect or ctl is TextureRect or ctl is TextureButton
 		if not skip and r.size.x > 0 and (r.position.x < vp.position.x - 1.0 or r.position.y < vp.position.y - 1.0 or r.end.x > vp.end.x + 1.0 or r.end.y > vp.end.y + 1.0):
 			issues.append("OFFSCREEN  %s  %s" % [scene.get_path_to(ctl), r])
+		if ctl is Button and not (ctl is CheckBox) and not (ctl is OptionButton) and (ctl as Button).text == "" and (ctl as Button).icon == null and ctl.get_child_count() == 0 and not ctl.name.begins_with("@") and ctl.size.x > 20.0:
+			issues.append("EMPTY BUTTON  %s  %s" % [scene.get_path_to(ctl), ctl.get_global_rect()])
 		if ctl is Button and (ctl as Button).text != "" and not skip:
 			var b := ctl as Button
 			var bfs := b.get_theme_font_size("font_size")

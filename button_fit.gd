@@ -3,7 +3,7 @@ extends Node
 ## times a second. Long text wraps onto more lines, and if it still would not fit the font shrinks a step at a time (never below
 ## MIN_FONT) until it does. When there is room again the original size comes back.
 
-const MIN_FONT := 9
+const MIN_FONT := 12
 const CHECK_EVERY := 0.25
 
 var _buttons: Array[Button] = []
@@ -29,13 +29,8 @@ static func _in_build(b: Node) -> bool:
 func _on_node_added(n: Node) -> void:
 	if n is Button and not (n is CheckBox) and not (n is OptionButton):
 		_buttons.append(n)
-		_set_wrap.call_deferred(n)
+		pass
 		_check_later.call_deferred(n)
-
-
-func _set_wrap(b: Button) -> void:
-	if is_instance_valid(b) and not _in_build(b):
-		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
 func _check_later(b: Button) -> void:
@@ -69,9 +64,12 @@ static func fits(b: Button, font_size: int) -> bool:
 	if avail.x < 4.0 or avail.y < 4.0:
 		return true
 	var font: Font = b.get_theme_font("font")
-	var sz := font.get_multiline_string_size(b.text, HORIZONTAL_ALIGNMENT_LEFT, avail.x, font_size, -1, TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE | TextServer.BREAK_MANDATORY)
-	# (a word wider than the button is broken across lines by the smart wrap, so only the height needs checking)
-	return sz.y <= avail.y + 0.5
+	# measured on one line (buttons are never wrapped or collapsed): the longest line must fit the width
+	var widest := 0.0
+	for line in b.text.split("
+"):
+		widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+	return widest <= avail.x + 0.5
 
 
 ## Make the text fit: shrink the font until it does, or put the original size back if the original now fits.
@@ -85,6 +83,10 @@ static func fit(b: Button) -> void:
 	var size := orig
 	while size > MIN_FONT and not fits(b, size):
 		size -= 1
+	# if even the smallest readable size cannot fit it, trim with an ellipsis so text never spills over the edge
+	b.clip_text = size <= MIN_FONT and not fits(b, size)
+	if b.clip_text:
+		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	if size == b.get_theme_font_size("font_size"):
 		return
 	if size == orig and not bool(b.get_meta("fit_had_override")):

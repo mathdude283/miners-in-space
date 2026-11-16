@@ -86,12 +86,13 @@ func setup(mode: String, title_text: String, role_text: String, rows: Array[Dict
 	_third.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_third.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_third.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_third.custom_minimum_size = Vector2(0, 72)
-	buttons.add_child(_third)
+	_third.custom_minimum_size = Vector2(0, 48)
+	col.add_child(_third)                    # the warning gets its own full-width line above the buttons
 	_secondary = Button.new()
 	_secondary.theme_type_variation = &"OutlineButton"
 	_secondary.add_theme_font_size_override("font_size", 19)
-	_secondary.custom_minimum_size = Vector2(0, 56)
+	_secondary.custom_minimum_size = Vector2(300, 64)
+	_secondary.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_secondary.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_secondary.pressed.connect(_on_secondary)
 	buttons.add_child(_secondary)

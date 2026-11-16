@@ -38,20 +38,7 @@ func setup(mode: String, title_text: String, role_text: String, rows: Array[Dict
 	col.add_child(UiStyle.mono_label(role_text, 15, UiStyle.PHOSPHOR))
 	_title = UiStyle.heading(title_text)
 	_title.add_theme_font_size_override("font_size", 34)
-	var trow := HBoxContainer.new()
-	trow.add_theme_constant_override("separation", 16)
-	var face := TextureRect.new()
-	var fat := AtlasTexture.new()
-	fat.atlas = load("res://assets/ui/kit/panel_mission_control.png")
-	fat.region = Rect2(0, 0, 196, 180)
-	face.texture = fat
-	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	face.custom_minimum_size = Vector2(84, 76)
-	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	trow.add_child(face)
-	trow.add_child(_title)
-	col.add_child(trow)
+	col.add_child(_title)
 
 	_role = Label.new()
 	_role.add_theme_font_size_override("font_size", 19)

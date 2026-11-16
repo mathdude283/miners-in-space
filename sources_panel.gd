@@ -41,16 +41,7 @@ func _ready() -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 12)
 	p.add_child(col)
-	var hrow := HBoxContainer.new()
-	hrow.add_theme_constant_override("separation", 16)
-	var cart := TextureRect.new()
-	cart.texture = load("res://assets/ui/kit/moonbound03_data_cartridge.png")
-	cart.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	cart.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	cart.custom_minimum_size = Vector2(96, 64)
-	hrow.add_child(cart)
-	hrow.add_child(UiStyle.heading("SOUND, SOURCES AND CREDITS"))
-	col.add_child(hrow)
+	col.add_child(UiStyle.heading("SOUND, SOURCES AND CREDITS"))
 
 	# Sound
 	col.add_child(UiStyle.mono_label("SOUND   (press M anywhere to mute everything)", 14, UiStyle.PHOSPHOR))

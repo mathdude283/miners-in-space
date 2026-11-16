@@ -10,9 +10,7 @@ A free educational space game for NASA Space Apps 2026, inspired by NASA's Artem
 - Every fact is labelled REAL (with its source) or GAME (a game rule). See [SOURCES.md](SOURCES.md).
 
 ## Run it
-- **Windows build:** ask the team for `Moonbound-Windows.zip` (one `Moonbound.exe`, no install).
-- **From source:** install Godot 4.7, open this folder as a project and press Play.
-- **Tests:** `powershell -ExecutionPolicy Bypass -File tests\run_tests.ps1`
+- Run [Miners In Space.exe](Miners%20In%20Space.exe)
 
 ## Honesty notes
 - Spacecraft artwork and crew portraits are AI-generated. See [assets/ui/AI-DISCLOSURE.md](assets/ui/AI-DISCLOSURE.md).

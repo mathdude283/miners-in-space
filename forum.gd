@@ -18,6 +18,8 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	var background = PlayerData.background.instantiate()
+	add_child(background)
 	submit.disabled = true
 	# Question Generation
 	question1.text = generate_question(PlayerData.MissionConfig.SHIPTYPE, PlayerData.ShipType.LOCALORBIT)
@@ -198,51 +200,6 @@ func generate_question(configType, topic) -> String:
 			Ello
 			""")
 		elif topic == PlayerData.Instruments.INFAREDCAMERA:
-			Q5Answers.get_children()[0].text = "bananana"
-			Q5Answers.get_children()[1].text = "banana"
-			Q5Answers.get_children()[2].text = "nanana"
-			Q5Answers.get_children()[3].text = "naaaa"
-			return (
-			"""
-			Ello
-			""")
-		elif topic == PlayerData.Instruments.RADARSAR:
-			Q5Answers.get_children()[0].text = "bananana"
-			Q5Answers.get_children()[1].text = "banana"
-			Q5Answers.get_children()[2].text = "nanana"
-			Q5Answers.get_children()[3].text = "naaaa"
-			return (
-			"""
-			Ello
-			""")
-		elif topic == PlayerData.Instruments.SPECTROMETER:
-			Q5Answers.get_children()[0].text = "bananana"
-			Q5Answers.get_children()[1].text = "banana"
-			Q5Answers.get_children()[2].text = "nanana"
-			Q5Answers.get_children()[3].text = "naaaa"
-			return (
-			"""
-			Ello
-			""")
-		elif topic == PlayerData.Instruments.MAGNETOMETER:
-			Q5Answers.get_children()[0].text = "bananana"
-			Q5Answers.get_children()[1].text = "banana"
-			Q5Answers.get_children()[2].text = "nanana"
-			Q5Answers.get_children()[3].text = "naaaa"
-			return (
-			"""
-			Ello
-			""")
-		elif topic == PlayerData.Instruments.PROBE:
-			Q5Answers.get_children()[0].text = "bananana"
-			Q5Answers.get_children()[1].text = "banana"
-			Q5Answers.get_children()[2].text = "nanana"
-			Q5Answers.get_children()[3].text = "naaaa"
-			return (
-			"""
-			Ello
-			""")
-		elif topic == PlayerData.Instruments.ALTIMETER:
 			Q5Answers.get_children()[0].text = "bananana"
 			Q5Answers.get_children()[1].text = "banana"
 			Q5Answers.get_children()[2].text = "nanana"

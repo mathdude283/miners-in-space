@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c3mh7uidagdig"]
 
 [ext_resource type="Script" uid="uid://d2riekqjo0r1o" path="res://main_menu.gd" id="1_06t4h"]
+[ext_resource type="Theme" uid="uid://c58fket4g4c60" path="res://assets/themes/base_theme.tres" id="2_7vrkn"]
 
 [node name="MainMenu" type="Node2D" unique_id=770708661]
 script = ExtResource("1_06t4h")
@@ -19,6 +20,7 @@ offset_right = 1.0
 offset_bottom = 3.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_7vrkn")
 metadata/_edit_lock_ = true
 
 [node name="MissionSelectButtonsMargin" type="MarginContainer" parent="CanvasLayer/UI" unique_id=346764517]

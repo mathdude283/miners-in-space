@@ -7,6 +7,8 @@ const CARD_SCENE = preload("res://ship_options.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	var background = PlayerData.background.instantiate()
+	add_child(background)
 	option_menu.hide()
 	ui.add_child(option_menu)
 	# Dictionary is of form {id, image, descr, button_txt}

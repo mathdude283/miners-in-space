@@ -7,6 +7,8 @@ extends Node2D
 @onready var mission_summ: RichTextLabel = $CanvasLayer/UI/MissionConfirmationMargin/VBoxContainer/MissionSummary
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	var background = PlayerData.background.instantiate()
+	add_child(background)
 	start_button.show()
 	mission_select.hide()
 	mission_conf.hide()

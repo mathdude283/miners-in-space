@@ -1,32 +1,66 @@
 extends SceneTree
-## Records a 30-second tour of Moonbound with Godot's Movie Maker (the game plays itself through each screen).
-## godot --path . --write-movie build/demo.avi --fixed-fps 30 --resolution 1280x720 --script res://tools/demo_video.gd
+## Records the 30-second video pitch with Godot's Movie Maker. The game plays itself through each screen, with a visible cursor and
+## a caption that is exactly the sentence being said. The words and timing follow the Space Apps video brief:
+##   0:00 introduce yourself and the team   0:02 lead in (the challenge, what inspired us)   0:05 name the project
+##   0:10 describe the idea and the NASA data   0:20 look into the future
+## godot --path . --write-movie build/pitch_silent.avi --fixed-fps 30 --script res://tools/demo_video.gd
+## The voice is added afterwards with ffmpeg.
+
+const FAR_SIDE: Texture2D = preload("res://assets/nasa/artemis2_farside_view.jpg")
+
+# The sentences, and the frame (30 per second) where each caption appears. The voice starts at the same moments.
+const LINES := [
+	[0, "Hi! I'm Sarah, from Team Miners in Space!"],
+	[114, "Artemis II flew around the Moon. What if everyone could fly it?"],
+	[243, "Meet Moonbound: fly real missions and learn the science!"],
+	[357, "Build your ship, photograph NASA's real Orientale Basin, and spot a flash. Every fact comes from NASA's open data."],
+	[597, "Imagine students designing spacecraft for wildfires, lunar ice, even Neptune. That's how we inspire the next explorers!"],
+]
+# The screens, in order: start frame and what to show.
+const SCREENS := [[0, "title"], [112, "farside"], [241, "select"], [357, "build"], [417, "photo"], [537, "impact"], [582, "report"], [630, "design"], [715, "ending"]]
+const END_FRAME := 872
+
 var _frames := 0
+var _pd: Node
+var _scene: Node
 var _cursor: Control
 var _cap: Label
+var _intro: Control
 var _cpos := Vector2(960, 700)
 var _ripple := -1.0
-var _plan: Array = []
-# The caption on each screen is exactly the sentence the voice says there (two screens can share one sentence).
-const LINES := [
-	"Moonbound: a free space game inspired by Artemis Two.",
-	"Pick a contract.",
-	"Choose your crew.",
-	"Build your ship.",
-	"Fly it, and photograph the real Orientale Basin.",
-	"Spot a flash. One witness is not proof.",
-	"Every flight is graded, then quizzed by Mission Control.",
-	"Later: design spacecraft for Neptune, and more.",
-	"Bring them home, and earn your certificate.",
-]
-const STEP_LINE := [0, 1, 2, 3, 4, 5, 6, 6, 7, 8]
-var _scene: Node
-var _pd: Node
-var _step := -1
-const FPS := 30
+var _screen := -1
+var _zoom: TextureRect
 
-# (frame to start at, what to show)
-const TIMELINE := [0, 115, 175, 235, 295, 425, 532, 622, 702, 815]
+
+func _initialize() -> void:
+	root.set_flag(Window.FLAG_NO_FOCUS, true)
+	_pd = root.get_node("PlayerData")
+	_pd.autosave_enabled = false
+	_pd.ai_notice_seen = true
+	_make_overlay()
+
+
+func _process(_delta: float) -> bool:
+	_frames += 1
+	var idx := 0
+	for i in SCREENS.size():
+		if _frames >= int(SCREENS[i][0]):
+			idx = i
+	if idx != _screen:
+		_screen = idx
+		_begin(String(SCREENS[idx][1]))
+	var f := _frames - int(SCREENS[idx][0])
+	_during(String(SCREENS[idx][1]), f)
+	_overlay(String(SCREENS[idx][1]), f)
+	for c in root.get_children():
+		if c.get_script() != null and c.get_script().get_global_name() == "SourcesPanel":
+			c.queue_free()
+	if _frames >= END_FRAME:
+		quit()
+	return false
+
+
+# ---------------------------------------------------------------- the overlay: cursor, captions, intro card
 
 func _make_overlay() -> void:
 	var layer := CanvasLayer.new()
@@ -39,7 +73,7 @@ func _make_overlay() -> void:
 	layer.add_child(_cursor)
 	var panel := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.02, 0.03, 0.1, 0.88)
+	sb.bg_color = Color(0.02, 0.03, 0.1, 0.9)
 	sb.set_corner_radius_all(14)
 	sb.set_content_margin_all(16)
 	sb.border_color = Color("c8ff36")
@@ -54,8 +88,31 @@ func _make_overlay() -> void:
 	_cap.add_theme_font_size_override("font_size", 30)
 	_cap.add_theme_color_override("font_color", Color("f2f5ff"))
 	_cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_cap.custom_minimum_size = Vector2(1500, 0)
 	panel.add_child(_cap)
 	layer.add_child(panel)
+	# the introduction card (0:00): team and presenter
+	var card := PanelContainer.new()
+	var sb2 := sb.duplicate() as StyleBoxFlat
+	sb2.set_content_margin_all(22)
+	card.add_theme_stylebox_override("panel", sb2)
+	card.position = Vector2(70, 60)
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var v := VBoxContainer.new()
+	var t1 := Label.new()
+	t1.text = "TEAM MINERS IN SPACE"
+	t1.add_theme_font_size_override("font_size", 46)
+	t1.add_theme_color_override("font_color", Color("c8ff36"))
+	var t2 := Label.new()
+	t2.text = "Presenter: Sarah Waldron   |   NASA Space Apps Challenge 2026"
+	t2.add_theme_font_size_override("font_size", 26)
+	t2.add_theme_color_override("font_color", Color("f2f5ff"))
+	v.add_child(t1)
+	v.add_child(t2)
+	card.add_child(v)
+	layer.add_child(card)
+	_intro = card
 
 
 func _draw_cursor() -> void:
@@ -79,95 +136,43 @@ func _btn(part: String) -> Vector2:
 	return Vector2(960, 540)
 
 
-func _initialize() -> void:
-	root.set_flag(Window.FLAG_NO_FOCUS, true)
-	_pd = root.get_node("PlayerData")
-	_pd.autosave_enabled = false
-	_pd.ai_notice_seen = true
-	_make_overlay()
-
-func _process(_delta: float) -> bool:
-	_frames += 1
-	var idx := -1
-	for i in TIMELINE.size():
-		if _frames >= TIMELINE[i]:
-			idx = i
-	if idx != _step:
-		_step = idx
-		print("DEMO step ", idx, " frame ", _frames)
-		_begin(idx)
-	# the recording shows the real screens only: close any stray credits panel
-	for c in root.get_children():
-		if c.get_script() != null and c.get_script().get_global_name() == "SourcesPanel":
-			c.queue_free()
-	if _scene != null and is_instance_valid(_scene):
-		for c in _scene.get_children():
-			if c.get_script() != null and c.get_script().get_global_name() == "SourcesPanel":
-				c.queue_free()
-	_during(idx, _frames - TIMELINE[idx])
-	_move_cursor(idx, _frames - TIMELINE[idx])
-	if _frames >= 898:
-		quit()
-	return false
-
-## Where the cursor goes in each step: [frame, target position (or a Callable), click?]. The cursor glides to each target.
-func _move_cursor(i: int, f: int) -> void:
-	_cap.text = LINES[STEP_LINE[i]]
+func _overlay(screen: String, f: int) -> void:
+	# caption: the sentence being said right now
+	var text := ""
+	for l in LINES:
+		if _frames >= int(l[0]):
+			text = String(l[1])
+	_cap.text = text
+	_intro.visible = _frames < 112
 	var target := _cpos
 	var click_now := false
-	match i:
-		0:
-			target = _btn("START") if f > 15 else Vector2(900, 800)
-			click_now = f == 70
-		1:
-			if f < 35:
-				target = _btn("ORIENTALE") if _scene.has_method("show_page") and false else (_scene.cards_row.get_child(0).get_global_rect().get_center() if _scene.get("cards_row") != null else target)
-				click_now = f == 28
-			else:
-				target = _btn("ACCEPT")
-				click_now = f == 62
-		2:
-			if f < 30:
-				target = _btn("PILOT")
-				click_now = f == 24
-			else:
-				target = _btn("CONTINUE TO BUILD")
-				click_now = f == 52
-		3:
-			if f < 30:
-				target = _btn("Lunar evidence ship")
-				click_now = f == 24
-			else:
-				target = _btn("FLY") 
-				click_now = f == 66
-		4:
-			var g = _scene
-			if g != null and g.get("_aim") != null:
-				target = g._aim * (Vector2(root.get_visible_rect().size) / Vector2(1920, 1080))
+	match screen:
+		"title":
+			target = _btn("START") if f > 40 else Vector2(1200, 760)
+			click_now = f == 80
+		"farside":
+			target = Vector2(1300, 420)
+		"select":
+			target = _scene.cards_row.get_child(0).get_global_rect().get_center() if f < 50 and _scene.get("cards_row") != null else _btn("ACCEPT")
+			click_now = f == 40
+		"build":
+			target = _btn("Lunar evidence ship") if f < 30 else Vector2(1500, 300)
+			click_now = f == 24
+		"photo":
+			if _scene != null and _scene.get("_aim") != null:
+				target = _scene._aim * (Vector2(root.get_visible_rect().size) / Vector2(1920, 1080))
 			click_now = f == 45 or f == 98
-		5:
-			var w = _scene
-			if w != null and w.get("_view") != null and w._view != null:
-				target = w._view.get_global_rect().position + Vector2(412, 236) if f > 20 else _btn("FLIGHT DECK")
-			click_now = f == 52
-		6:
+		"impact":
+			if _scene != null and _scene.get("_view") != null and _scene._view != null:
+				target = _scene._view.get_global_rect().position + Vector2(412, 236) if f > 12 else _btn("FLIGHT DECK")
+			click_now = f == 36
+		"report":
 			target = Vector2(1090, 330)
-			click_now = false
-		7:
-			var qc = _scene
-			if qc != null and qc.get("_order") != null and qc.get("questions") != null:
-				var kk := 0
-				for k in qc._order.size():
-					if qc._order[k] == int(qc.questions[0]["answer"]):
-						kk = k
-				if f > 5 and qc._opts.get_child_count() > kk:
-					target = (qc._opts.get_child(kk) as Control).get_global_rect().get_center()
-			click_now = f == 32
-		8:
-			target = _btn("CONTRACTS 04") if f < 45 else Vector2(560, 560)
+		"design":
+			target = _btn("CONTRACTS 04") if f < 50 else Vector2(560, 560)
 			click_now = f == 20
-		9:
-			target = _btn("NEW CAMPAIGN") if f > 90 else Vector2(960, 330)
+		"ending":
+			target = Vector2(960, 330)
 	_cpos = _cpos.lerp(target, 0.16)
 	if click_now:
 		_ripple = 0.0
@@ -178,14 +183,20 @@ func _move_cursor(i: int, f: int) -> void:
 	_cursor.queue_redraw()
 
 
+# ---------------------------------------------------------------- the screens
+
 func _swap(n: Node) -> void:
 	if _scene != null and is_instance_valid(_scene):
 		_scene.queue_free()
+	if _zoom != null and is_instance_valid(_zoom):
+		_zoom.queue_free()
+		_zoom = null
 	_scene = n
 	root.add_child(n)
 	current_scene = n
 
-func _ship(full := true) -> BuildState:
+
+func _ship() -> BuildState:
 	var b := BuildState.new()
 	var rooms := ["flight-deck", "life-support", "observation", "communications", "science-lab", ""]
 	for i in rooms.size():
@@ -195,24 +206,39 @@ func _ship(full := true) -> BuildState:
 	b.wings = 2
 	return b
 
-func _begin(i: int) -> void:
-	match i:
-		0:   # title
+
+func _begin(screen: String) -> void:
+	match screen:
+		"title":
 			_pd.new_campaign()
 			_swap(load("res://title.tscn").instantiate())
-		1:   # mission select, page 1
+		"farside":
+			# NASA's real picture of the far side, slowly zooming in (credit: NASA)
+			_swap(Control.new())
+			_zoom = TextureRect.new()
+			_zoom.texture = FAR_SIDE
+			_zoom.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			_zoom.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			_zoom.size = Vector2(1080, 1080)
+			_zoom.position = Vector2(420, 0)
+			_zoom.pivot_offset = Vector2(540, 540)
+			root.add_child(_zoom)
+			var credit := Label.new()
+			credit.text = "Real image: NASA, Artemis II lunar flyby"
+			credit.add_theme_font_size_override("font_size", 20)
+			credit.position = Vector2(40, 40)
+			_zoom.add_child(credit)
+		"select":
 			_pd.new_campaign()
 			_pd.campaign["briefed"] = true
 			_swap(load("res://mission_select.tscn").instantiate())
-		2:   # crew
-			_swap(load("res://crew_screen.tscn").instantiate())
-		3:   # build
+		"build":
 			_pd.new_campaign()
 			_pd.scenario = 0
 			var s = load("res://build_screen.tscn").instantiate()
 			_swap(s)
 			s._load_starter(1)
-		4:   # the Moon photo with NASA's real view
+		"photo":
 			var PG = load("res://photo_game.gd")
 			PG._practiced = true
 			var g = PG.new()
@@ -220,14 +246,14 @@ func _begin(i: int) -> void:
 			g.has_lens = {"wide": true, "close": true}
 			_swap(g)
 			g._start_shoot()
-		5:   # Impact Watch
+		"impact":
 			var w = load("res://impact_watch.gd").new()
 			w.state = _ship()
 			w.crew = _pd.crew
 			_swap(w)
 			w._start_watch()
-			w.set_time(19.0, "V1")
-		6:   # the report with a grade
+			w.set_time(20.4, "V1")
+		"report":
 			_pd.new_campaign()
 			_pd.scenario = 0
 			var bs: BuildState = _pd.get_build()
@@ -243,18 +269,14 @@ func _begin(i: int) -> void:
 			run.landing = {"landed": true, "speed_mph": 19.0, "angle": 1.0, "over_seconds": 0.0, "notes": ["Entry angle: clean.", "Splashdown at 19 mph: soft."]}
 			_pd.campaign["done"].append(0)
 			_swap(load("res://report_screen.tscn").instantiate())
-		7:   # a quiz question
-			var qc = load("res://quiz_card.gd").new()
-			qc.questions = QuizData.for_contract(0)
-			_swap(qc)
-		8:   # the spacecraft design contracts
+		"design":
 			_pd.new_campaign()
 			_pd.campaign["briefed"] = true
 			_pd.campaign["done"] = [0]
 			var ms = load("res://mission_select.tscn").instantiate()
 			_swap(ms)
 			ms.show_page.call_deferred(1)
-		9:   # the ending
+		"ending":
 			_pd.new_campaign()
 			_pd.campaign["crew_chosen"] = true
 			_pd.campaign["done"] = [0, 1, 2]
@@ -268,34 +290,27 @@ func _begin(i: int) -> void:
 				{"id": 2, "tag": "CONTRACT 03", "name": "Impact Watch", "headline": "Mission Control gave justified verdicts on 3 of 3 sightings.", "detail": "You sent 8 of 20 packets.", "score": 93, "grade": "A", "points": 1450}]
 			_swap(load("res://ending_screen.tscn").instantiate())
 
-func _during(i: int, f: int) -> void:
-	match i:
-		1:
-			if f == 45 and _scene.has_method("show_page"):
-				_scene.show_page(0)
-		4:
+
+func _during(screen: String, f: int) -> void:
+	match screen:
+		"farside":
+			if _zoom != null and is_instance_valid(_zoom):
+				var k := 1.0 + float(f) / 125.0 * 0.35
+				_zoom.scale = Vector2(k, k)
+		"photo":
 			var g = _scene
 			if g == null or not g.has_method("_set_hold"):
 				return
-			g._t = 1.0 if f < 5 else g._t
 			if f > 15 and f < 100:
 				g._aim = g._target_at(g._t)
 			if f == 45:
 				g._set_hold(true)
 			if f == 98:
 				g._set_hold(false)
-		5:
+		"impact":
 			var w = _scene
-			if w == null or not w.has_method("log_sighting"):
-				return
-			if f == 50:
+			if w != null and w.has_method("log_sighting") and f == 36:
 				w.log_sighting(412.0, 236.0)
-		7:
-			var qc = _scene
-			if qc != null and qc.has_method("answer") and f == 34:
-				for k in qc._order.size():
-					if qc._order[k] == int(qc.questions[0]["answer"]):
-						qc.answer(k)
-		9:
-			if f == 50 and _scene.has_method("_show"):
+		"ending":
+			if f == 55 and _scene.has_method("_show"):
 				_scene._show(_scene.beat_count() - 1)

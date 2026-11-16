@@ -51,6 +51,8 @@ func _show_menu() -> void:
 		["CRATER PHOTO, LOW SUN", "Shadows show the crater's shape (Contract 02).", "crater_low"],
 		["CRATER PHOTO, HIGH SUN", "No shadows, so bright rays stand out (Contract 02).", "crater_high"],
 		["SEND PHOTOS HOME", "Keep the radio beam on Earth until each photo arrives.", "radio"],
+		["LAUNCH: MAX Q", "Hold SPACE while the pressure is over the limit. It tells you what you did wrong.", "maxq"],
+		["LAUNCH: BOOSTER SEPARATION", "Press SPACE once, inside the green window. Try again as often as you like.", "sep"],
 	]:
 		var b := Button.new()
 		b.text = "%s\n%s" % [opt[0], opt[1]]
@@ -89,7 +91,12 @@ func start(kind: String) -> void:
 		return
 	if _panel != null:
 		_panel.hide()
-	if kind == "radio":
+	if kind == "maxq" or kind == "sep":
+		var ac := AscentControl.new()
+		ac.mode = kind
+		ac.preview = true
+		_game = ac
+	elif kind == "radio":
 		var g := DownlinkGame.new()
 		var photos: Array[Dictionary] = []
 		for lens in ["wide", "close"]:
@@ -111,7 +118,10 @@ func start(kind: String) -> void:
 			g.has_lens = {"wide": true, "close": false}
 		_game = g
 	add_child(_game)
-	_game.finished.connect(_on_game_finished)
+	if _game.has_signal("done"):
+		_game.done.connect(_on_game_finished)
+	else:
+		_game.finished.connect(_on_game_finished)
 	var banner := UiStyle.mono_label("PRACTICE   -   nothing is saved", 15, UiStyle.AMBER)
 	banner.position = Vector2(20, 8)
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE

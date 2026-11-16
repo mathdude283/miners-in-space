@@ -1,0 +1,33 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  a full ship can send everything it logged
+PASS  a minimal ship can send the Window 1 log
+PASS  but not a tight crop without the close lens
+PASS  and not a second window it does not have
+PASS  the wide frame works with the wide lens
+PASS  a Science camera log needs a Science Lab
+PASS  a retelling needs a Flight Deck
+PASS  a click at the right place but the wrong time logs nothing
+PASS  a click in the right time but the wrong place logs nothing
+PASS  looking through the wrong window does not count
+PASS  the silence log needs the camera to have been watched
+PASS  packets grow with solar wings
+PASS  everything cannot be sent
+PASS  sending more than the budget is refused
+PASS  sending nothing is refused
+PASS  a sensible set is delivered
+PASS  the file holds no truth
+PASS  and only the delivered records
+PASS  the budget stops a choice that does not fit
+PASS  sending delivers a validated case file
+PASS  the file loads back and validates
+PASS  Mission Control finds the three candidates
+PASS  the review cannot be locked before every candidate has a verdict
+PASS  with every verdict given the review can be locked
+PASS  a well-justified review is complete
+PASS  a review file was saved bound to the case
+PASS  the reveal is available because the run record is aboard
+PASS  calling everything supported on one witness each is not justified
+PASS  the same scenario with two sends gives different files
+FAILS: 0

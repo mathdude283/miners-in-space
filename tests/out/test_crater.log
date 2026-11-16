@@ -1,0 +1,57 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  same pass is fully comparable
+PASS  early and late: partly comparable
+PASS  early and midday: not comparable
+PASS  rays show best in the high Sun
+PASS  two low-Sun photos show rays about the same
+PASS  repeating a pass at the same crater costs a full orbit
+PASS  a different crater has no repeat wait
+PASS  first observation is Glushko, second follows the branch
+PASS  a matching pair with every answer right is usable and strong
+PASS  different light fails the re-observation, and says why
+PASS  wrong answers lower the confidence and are named
+PASS  two high-Sun photos make a usable Ohm comparison
+PASS  a low-Sun Glushko photo cannot compare rays with Ohm
+PASS  contract 02 is available
+PASS  contract 02 needs the Science Lab
+PASS  without a lab the photo step fails with the lab named
+PASS  with a lab the whole plan holds
+PASS  a ship that can fly contract 02 fits the weight, power and budget limits
+PASS  build tells the player contract 02 needs a lab
+PASS  and ticks it once the lab is built
+PASS  a locked ship with no lab cannot do contract 02
+PASS  a locked ship with a lab can go on
+PASS  contract 03 is still not open
+PASS  the same seed picks the same events
+PASS  sheltering costs time and hurts nobody
+PASS  a harm carries its reason when it lands
+PASS  a built Life Support room makes the leak cheaper
+PASS  treating illness needs a Medical Bay and says so
+PASS  untreated illness hurts that person with the reason
+PASS  the observation bay becomes a crater camera
+PASS  the flight deck plans the pass
+PASS  the lab compares
+PASS  observing before planning says to plan first
+PASS  comparing before observing says you need both photos
+PASS  sending before taking a photo says take one
+PASS  the scientist makes lab work quicker
+PASS  planning spends the waiting time and picks the branch
+PASS  a pass is planned
+PASS  the first photo is kept and the objective ticks
+PASS  repeating the pass waits for the next orbit
+PASS  both photos are kept
+PASS  nothing more to plan after two observations
+PASS  a comparison can be made now
+PASS  sending before comparing says to compare first
+PASS  compare ticks its objective
+PASS  now sending is allowed
+PASS  operations report the science
+PASS  operations report both photos and both reached Earth
+PASS  the notes explain the comparison
+PASS  this contract has two events
+PASS  no event while no time has been used
+PASS  an event pauses the ship until the player decides
+PASS  after the decision the ship runs again
+FAILS: 0

@@ -1,0 +1,21 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  a new campaign starts with nothing done, ship not locked
+PASS  a new campaign has three crew at full health
+PASS  contract 01 is open from the start
+PASS  contract 02 is not open yet and says why
+PASS  contract 02 lists the Science Lab as a need
+PASS  a bare ship meets none of them
+PASS  the evidence ship meets contract 01
+PASS  but not the Science Lab for contract 02
+PASS  completing a contract locks the ship
+PASS  the dead are removed for good
+PASS  the survivors recover on the ground
+PASS  contract 01 now shows as complete
+PASS  with nothing left to play the campaign is over
+PASS  no crew left ends the campaign
+PASS  the reason names the cause
+PASS  an over campaign closes every contract
+PASS  a new campaign starts fresh again
+FAILS: 0

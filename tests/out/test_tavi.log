@@ -1,0 +1,17 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  Tavi is in the roster
+PASS  Tavi sits in seat 3 with his own name
+PASS  the three roles and default seats are unchanged
+PASS  Tavi is the saved scientist
+PASS  Tavi is on the ship
+PASS  everyone starts facing us (front idle)
+PASS  the walker is walking
+PASS  switching with a key stops the outgoing walk
+PASS  and the new person is selected
+PASS  Tavi stands in the side-facing idle after walking
+PASS  Sam is walking left
+PASS  clicking a portrait while moving stops the outgoing walk
+PASS  the stopped walker shows the side idle
+FAILS: 0

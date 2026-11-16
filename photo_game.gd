@@ -49,6 +49,7 @@ var _panel: Control
 var _time_bar: Label
 var _lens_btns := {}
 var _hint: Label
+var _done_btn: Button
 var _sun_bar: Control
 var _sun_label: Label
 var _coach: Label
@@ -423,6 +424,18 @@ func _build_hud() -> void:
 	_hint.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.8))
 	_hint.custom_minimum_size = Vector2(0, 50)
 	col.add_child(_hint)
+	# Stop early: keep what you have and go on (for example to send a good wide shot now)
+	_done_btn = Button.new()
+	_done_btn.text = "DONE TAKING PHOTOS"
+	_done_btn.theme_type_variation = &"OutlineButton"
+	_done_btn.add_theme_font_size_override("font_size", 16)
+	_done_btn.custom_minimum_size = Vector2(0, 44)
+	_done_btn.focus_mode = Control.FOCUS_NONE
+	_done_btn.disabled = true
+	_done_btn.pressed.connect(func():
+		if not _taking and not _best.is_empty():
+			_end_shoot())
+	col.add_child(_done_btn)
 	_refresh_hud()
 	# Live coaching line: always says what to do next
 	var cp := PanelContainer.new()
@@ -482,6 +495,8 @@ func _pick_lens(k: String) -> void:
 
 
 func _refresh_hud() -> void:
+	if _done_btn != null:
+		_done_btn.disabled = _best.is_empty()
 	for k in _lens_btns:
 		var b: Button = _lens_btns[k]
 		var left: int = _max_shots() - int(_attempts[k])
@@ -814,7 +829,7 @@ func _show_tag() -> void:
 		thumb.custom_minimum_size = Vector2(430, 262)
 		cc.add_child(thumb)
 		cc.add_child(UiStyle.mono_label("%s   %s" % [LENS_NAME[k], "*".repeat(int(ph["stars"]))], 16, UiStyle.PHOSPHOR))
-		for kv in [["TIME", "MET +0:%02d" % int(ph["met"])], ["TARGET", "%s (simulated)" % target["name"]], ["VIEW", "From the observation window"], ["SOURCE", "Your ship's camera (game)"], ["CONFIDENCE", String(ph["confidence"])]]:
+		for kv in [["GAME CLOCK", "%d min into operations (GAME)" % maxi(int(ph["met"]) - 34, 0)], ["TARGET", "%s (simulated)" % target["name"]], ["VIEW", "From the observation window"], ["SOURCE", "Your ship's camera (game)"], ["CONFIDENCE", String(ph["confidence"])]]:
 			cc.add_child(UiStyle.mono_label("%-10s %s" % [kv[0], kv[1]], 13, Color(UiStyle.NEAR_WHITE, 0.8)))
 		var br := HBoxContainer.new()
 		br.add_theme_constant_override("separation", 8)

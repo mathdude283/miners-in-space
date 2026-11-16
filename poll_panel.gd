@@ -70,14 +70,14 @@ func setup(mode: String, title_text: String, role_text: String, rows: Array[Dict
 		call.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.92))
 		call.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		call.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		call.clip_text = true
-		call.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		call.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART        # long warnings wrap instead of being cut off
+		call.custom_minimum_size = Vector2(420, 0)
 		row.add_child(call)
 		grid.add_child(row)
 		_row_nodes.append({"status": status, "call": call})
 
 	_ntd = UiStyle.mono_label("", 16, UiStyle.CHROME)
-	_ntd.custom_minimum_size = Vector2(0, 26)
+	_ntd.custom_minimum_size = Vector2(0, 40)
 	col.add_child(_ntd)
 
 	var buttons := HBoxContainer.new()
@@ -86,6 +86,7 @@ func setup(mode: String, title_text: String, role_text: String, rows: Array[Dict
 	_third.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_third.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_third.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_third.custom_minimum_size = Vector2(0, 72)
 	buttons.add_child(_third)
 	_secondary = Button.new()
 	_secondary.theme_type_variation = &"OutlineButton"

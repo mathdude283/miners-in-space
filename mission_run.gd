@@ -17,6 +17,11 @@ var objectives: Array[Dictionary] = []     # {id, label, done}
 var branches := {}                         # branch id -> choice id
 var events: Array[Dictionary] = []         # {text, choice}
 var evidence: Array[Dictionary] = []
+var fault := {}                            # Orientale camera fault: {happened, route, label, ledger, cost, close_taken, wide_first}
+var landing := {}                          # the way home: {landed, speed_mph, notes, alive}
+var nasa_compare := {}                     # the report's comparison with NASA's real view: {interior, rings, done}
+var impact := {}                            # Contract 03: what was sent, the review and whether it was justified
+var partial := false                       # evidence came home but not all of it, so the contract is not complete
 var science := {}                          # Contract 02: the comparison {crater, branch, done, eval, says, observations}
 var damage_log: Array[Dictionary] = []     # {name, amount, reason, died}
 

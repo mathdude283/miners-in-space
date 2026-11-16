@@ -24,6 +24,7 @@ var _holding := false
 var _hold_elapsed := 0.0
 var _go_pressed := false
 var _locked := false          # the automated sequencer has the count
+var _recycle_late := false
 
 
 func _ready() -> void:
@@ -31,7 +32,7 @@ func _ready() -> void:
 	custom_minimum_size = Vector2(580, 0)
 
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 8)
+	col.add_theme_constant_override("separation", 10)
 	add_child(col)
 	col.add_child(UiStyle.mono_label("LAUNCH CONTROL  -  TERMINAL COUNT", 14, UiStyle.PHOSPHOR))
 	_clock = Label.new()
@@ -52,7 +53,7 @@ func _ready() -> void:
 	_prompt.add_theme_font_size_override("font_size", 19)
 	_prompt.add_theme_color_override("font_color", UiStyle.AMBER)
 	_prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_prompt.custom_minimum_size = Vector2(0, 52)
+	_prompt.custom_minimum_size = Vector2(0, 88)
 	col.add_child(_prompt)
 
 	var buttons := HBoxContainer.new()
@@ -61,7 +62,7 @@ func _ready() -> void:
 	_hold_btn.text = "HOLD"
 	_hold_btn.theme_type_variation = &"OutlineButton"
 	_hold_btn.add_theme_font_size_override("font_size", 20)
-	_hold_btn.custom_minimum_size = Vector2(150, 64)
+	_hold_btn.custom_minimum_size = Vector2(190, 72)
 	_hold_btn.pressed.connect(_on_hold)
 	buttons.add_child(_hold_btn)
 	var sp := Control.new()
@@ -79,7 +80,7 @@ func _ready() -> void:
 
 	_rule = UiStyle.mono_label("", 14, Color(UiStyle.NEAR_WHITE, 0.6))
 	_rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_rule.custom_minimum_size = Vector2(0, 40)
+	_rule.custom_minimum_size = Vector2(0, 64)
 	col.add_child(_rule)
 	_show_clock()
 
@@ -122,6 +123,7 @@ func _update_rule() -> void:
 func _on_hold() -> void:
 	if _locked:
 		return
+	_recycle_late = _zone() == "late"
 	_holding = not _holding
 	Sfx.play("hold")
 	_hold_btn.text = "RESUME COUNT" if _holding else "HOLD"
@@ -185,6 +187,8 @@ func _hold_tick(d: float) -> String:
 	_hold_elapsed += d
 	_status.text = "HOLD  %s" % _hold_text()
 	_status.add_theme_color_override("font_color", UiStyle.AMBER)
+	if _zone() == "late":
+		return "recycle"            # a stop after T-1:30 and before the sequencer recycles to T-10:00 (press kit)
 	if _zone() != "limited":
 		return ""
 	if _hold_elapsed * GroundControl.HOLD_TIME_SCALE >= GroundControl.HOLD_LIMIT_SECONDS:
@@ -193,6 +197,8 @@ func _hold_tick(d: float) -> String:
 
 
 func _hold_text() -> String:
+	if _zone() == "late":
+		return "(recycles to T-10:00)"
 	if _zone() != "limited":
 		return "(no limit)"
 	var left := GroundControl.HOLD_LIMIT_SECONDS - _hold_elapsed * GroundControl.HOLD_TIME_SCALE
@@ -209,7 +215,8 @@ func _recycle() -> void:
 	_prompt.text = ""
 	for c in _log.get_children():
 		c.queue_free()
-	_add_log("T-10:00", "The hold ran past 3 minutes. The count recycles to T-10:00.")
+	_add_log("T-10:00", "The count was stopped too late to hold. It recycles to T-10:00." if _recycle_late else "The hold ran past 3 minutes. The count recycles to T-10:00.")
+	_recycle_late = false
 	_status.text = "RECYCLED TO T-10:00"
 	_status.add_theme_color_override("font_color", UiStyle.AMBER)
 

@@ -22,14 +22,21 @@ const WEATHER_LIMITS := [
 	"Temperature: no launch if both sensors read above 94.5 F for 30 minutes",
 ]
 
+## Checked against the Artemis II Press Kit "Countdown Timeline" (nasa.gov/artemis-ii-press-kit/, page updated 1 Apr 2026):
+## T-6:00 ascent pyros armed, T-4:30 flight termination system armed (the press kit lists it at T-4:30, not T-5:00),
+## T-4:00 APU start, T-3:10 purge sequence 4, T-2:02 ICPS battery, T-2:00 booster battery, T-1:30 core stage internal power,
+## T-0:33 go for the automated launch sequencer, T-0:30 flight computer to ALS, T-0:10 engine start, T-0:06.36 RS-25 start, T-0 liftoff.
+## T-0:12 "hydrogen burn-off igniters" comes from the Artemis I count, not the Artemis II press kit.
 ## Terminal count, counted down in seconds before liftoff. "dur" is how many real seconds the game
 ## spends getting to this call from the previous one. "prompt" calls wait for the Launch Director.
 const COUNT: Array[Dictionary] = [
 	{"t": -600.0, "dur": 0.0, "text": "Ground Launch Sequencer starts the terminal count.", "label": "T-10:00"},
-	{"t": -360.0, "dur": 3.0, "text": "Core stage tanks pressurize. Orion pyros are armed.", "label": "T-6:00"},
-	{"t": -300.0, "dur": 1.4, "text": "GLS is go for flight termination system arm.", "label": "T-5:00", "prompt": "Flight termination system arm. Your call?"},
+	{"t": -360.0, "dur": 3.0, "text": "Orion ascent pyros are armed and Orion is set to internal power.", "label": "T-6:00"},
+	{"t": -270.0, "dur": 1.6, "text": "The flight termination system is armed.", "label": "T-4:30", "prompt": "Flight termination system armed. Your call?"},
 	{"t": -240.0, "dur": 1.2, "text": "Core stage auxiliary power unit starts.", "label": "T-4:00"},
 	{"t": -190.0, "dur": 1.2, "text": "Go for purge sequence 4.", "label": "T-3:10", "prompt": "Purge sequence 4. Your call?"},
+	{"t": -122.0, "dur": 0.8, "text": "The upper stage (ICPS) switches to its internal battery power.", "label": "T-2:02"},
+	{"t": -120.0, "dur": 0.4, "text": "The boosters switch to internal battery power.", "label": "T-2:00"},
 	{"t": -90.0, "dur": 2.0, "text": "Core stage goes to internal power.", "label": "T-1:30"},
 	{"t": -33.0, "dur": 1.8, "text": "Go for the automated launch sequencer.", "label": "T-0:33", "prompt": "Hand the count to the automated sequencer? After this the count cannot be held.", "last_hold": true},
 	{"t": -30.0, "dur": 0.4, "text": "Core stage flight computer takes over.", "label": "T-0:30"},
@@ -97,7 +104,7 @@ static func hold_guidance(zone: String) -> String:
 			return "A hold now is limited to %d minutes, or the count recycles to T-10:00." % int(HOLD_LIMIT_SECONDS / 60.0)
 		_:
 			var s := sequencer_t()
-			return "A hold is still possible, but the sequencer takes the count at T-%d:%02d." % [int(-s) / 60, int(-s) % 60]
+			return "A stop after T-1:30 recycles the count to T-10:00 if enough launch window remains. The sequencer takes the count at T-%d:%02d." % [int(-s) / 60, int(-s) % 60]
 
 
 ## The room, as the Launch Director hears it. `range_issue` replays a real Artemis II event: the

@@ -1,0 +1,19 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  three seats
+PASS  seven people to pick from
+PASS  seats start with Ada, Sam and Noor
+PASS  clicking a face puts them in the selected seat
+PASS  their own name comes with them
+PASS  picking someone already seated swaps the two
+PASS  names follow the swap while not edited
+PASS  an edited name is kept when the look changes
+PASS  the chosen crew is saved with their looks
+PASS  roles stay with the seats
+PASS  an empty name falls back to the character's name
+PASS  markup is stripped from names
+PASS  crew chosen is remembered
+PASS  moves on to the Build screen
+PASS  a run starts with the chosen crew at full health
+FAILS: 0

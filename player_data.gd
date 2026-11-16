@@ -24,7 +24,13 @@ var campaign := {"done": [], "locked": false, "over": false, "won": false, "over
 var crew: Array[Dictionary] = CrewData.defaults()
 ## The mission being played right now (resources, objectives, choices, events, evidence).
 var run: MissionRun = null
+## Progress is saved after every change that matters. Tests run with --script and never touch the real save.
+var autosave_enabled := not OS.get_cmdline_args().has("--script")
 var mission_summaries = ["This is the mission 1 summary.", "This is the mission 2 summary.", "This is the mission 3 summary."]
+
+
+## Power each solar wing adds to the run's reserve (a GAME rule). The camera-fault card reads this too, so it never double counts.
+const WING_RESERVE := 3.0
 
 
 ## Begin a fresh run of the chosen contract with the current crew at full health.
@@ -42,13 +48,31 @@ func start_run() -> MissionRun:
 	# Each solar wing adds to the power the crew can spend on jobs (a GAME rule)
 	var wings := get_build().wings
 	if run.resources.has("power"):
-		run.resources["power"]["max"] = float(run.resources["power"]["max"]) + 3.0 * wings
-		run.resources["power"]["cur"] = float(run.resources["power"]["cur"]) + 3.0 * wings
+		run.resources["power"]["max"] = float(run.resources["power"]["max"]) + WING_RESERVE * wings
+		run.resources["power"]["cur"] = float(run.resources["power"]["cur"]) + WING_RESERVE * wings
 	return run
 
 
 func current_mission() -> int:
 	return int(scenario) if scenario != null else 0
+
+
+## Write the campaign to the save slot (once the crew has been chosen).
+func autosave() -> void:
+	if autosave_enabled and bool(campaign["crew_chosen"]):
+		SaveGame.save(self)
+
+
+## Load the saved campaign, if there is one.
+func continue_saved() -> bool:
+	return SaveGame.load_into(self)
+
+
+## The player chose New Campaign: forget the saved one too.
+func start_over() -> void:
+	if autosave_enabled:
+		SaveGame.erase()
+	new_campaign()
 
 
 ## Start again from nothing: a new ship, a new crew, no contracts done.
@@ -124,6 +148,7 @@ func complete_contract(id: int) -> void:
 		campaign["done"].append(id)
 	campaign["locked"] = true
 	refresh_campaign()
+	autosave()
 
 
 ## After every flight: the dead are gone for good, the survivors recover on the ground. No one left ends the campaign.
@@ -146,6 +171,7 @@ func sync_crew_after_flight() -> void:
 		for d in run.deaths():
 			causes.append("%s: %s" % [d["name"], d["cause"]])
 		campaign["over_reason"] = "The whole crew was lost. " + "  ".join(causes)
+	autosave()
 
 
 func get_build() -> BuildState:

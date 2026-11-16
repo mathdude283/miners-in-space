@@ -1,0 +1,33 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  Contract 03 is playable
+PASS  Contract 03 waits for Contract 02
+PASS  after Contract 02 the next contract is 03 and it is open
+PASS  finishing all three ends the campaign as a win
+PASS  the stages are WATCH and SEND for this contract
+PASS  a ship with only the minimum can start the watch and the send
+PASS  a ship with only the close lens can too
+PASS  no lens still cannot watch
+PASS  Contract 01 stage names are unchanged
+PASS  the minimal ship can send the honest set
+PASS  and it fits in the base packets
+PASS  an honest reviewer of the minimal ship's case completes the contract
+PASS  the close-lens ship can send crops but not the wide frame
+PASS  and a careful 'possible' on each still completes the contract
+PASS  the saved report lists the packets and each verdict
+PASS  and says it is fictional and a game rule
+PASS  the report screen shows the review
+PASS  and does not show the Orientale NASA block
+PASS  sending nothing is reported plainly
+PASS  the case file saves
+PASS  a missing file gives a readable message
+PASS  a file that is not a case gives a readable message
+PASS  a case with a hidden truth field is refused
+PASS  a good case opens for review
+PASS  the review board is on screen
+PASS  and the run record on this computer lets it reveal afterwards
+PASS  a review file opens and is shown already judged
+PASS  the judged review is locked and complete
+PASS  a review that does not match the case is refused
+FAILS: 0

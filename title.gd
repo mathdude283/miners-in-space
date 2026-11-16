@@ -23,6 +23,7 @@ const COBALT := Color("1736cc")
 @onready var fade: ColorRect = $Fade
 
 var _starting := false
+var _has_continue := false
 var _parallax := Vector2.ZERO
 
 
@@ -53,6 +54,7 @@ func _ready() -> void:
 	col.add_child(more)
 	col.move_child(more, credits_close.get_index())
 
+	_add_continue()
 	credits_layer.hide()
 	# Clicking anywhere outside the panel closes it too.
 	$CreditsLayer/Dim.gui_input.connect(_on_dim_input)
@@ -179,10 +181,44 @@ func _on_dim_input(event: InputEvent) -> void:
 		_close_credits()
 
 
+## With a saved campaign the big button says CONTINUE, and a quiet NEW CAMPAIGN sits under it (two presses, so it is never an accident).
+func _add_continue() -> void:
+	if not PlayerData.autosave_enabled or not SaveGame.has_save():
+		return
+	start_button.text = "CONTINUE"
+	hint.text = SaveGame.summary().to_upper()
+	var nb := Button.new()
+	nb.text = "NEW CAMPAIGN"
+	nb.theme_type_variation = &"OutlineButton"
+	nb.focus_mode = Control.FOCUS_NONE
+	nb.add_theme_font_size_override("font_size", 20)
+	nb.custom_minimum_size = Vector2(300, 60)
+	nb.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	var armed := [false]
+	nb.pressed.connect(func():
+		if armed[0]:
+			SaveGame.erase()
+			PlayerData.new_campaign()
+			start_button.text = "START"
+			hint.text = "CLICK OR PRESS ENTER"
+			nb.queue_free()
+		else:
+			armed[0] = true
+			nb.text = "SURE? PROGRESS GOES"
+			get_tree().create_timer(3.0).timeout.connect(func():
+				if is_instance_valid(nb):
+					armed[0] = false
+					nb.text = "NEW CAMPAIGN"))
+	hint.get_parent().add_child(nb)
+	_has_continue = true
+
+
 func _on_start_pressed() -> void:
 	if _starting:
 		return
 	_starting = true
+	if _has_continue:
+		PlayerData.continue_saved()
 	fade.mouse_filter = Control.MOUSE_FILTER_STOP
 	var tw := create_tween().set_parallel()
 	tw.tween_property(fade, "color:a", 1.0, 0.6).set_ease(Tween.EASE_IN)

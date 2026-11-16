@@ -168,6 +168,9 @@ static func make_plan(s: BuildState, mission_id := 0) -> Array[Dictionary]:
 	var radio := {"name": "RADIO", "ok": true, "kind": "", "why": ""}
 	if not have.has("comms"):
 		radio = {"name": "RADIO", "ok": false, "kind": "radio", "why": "No radio. The data could not be sent home."}
+	if mission_id == 2:
+		photo["name"] = "WATCH"
+		radio["name"] = "SEND"
 	out.append(radio)
 	for row in out:
 		if not row["ok"]:
@@ -572,8 +575,12 @@ func _run() -> void:
 					skip_button.hide()
 				3:
 					if plan[i]["ok"]:
+						await _phase_transitions()
 						# The player walks the ship and does the photo and the send themselves
-						ops = await _ops_phase()
+						if mission_id == 2:
+							ops = await _impact_phase()
+						else:
+							ops = await _ops_phase()
 						shots = ops.get("shots", {})
 					else:
 						skip_button.show()
@@ -600,7 +607,7 @@ func _run() -> void:
 					_note(String(why3["why"]))
 					await _finish({"kind": "failed", "stage": "SCIENCE", "why": why3["why"], "fix": why3["fix"]})
 					return
-			if i == 3 and shots.get("photos", []).is_empty():
+			if i == 3 and mission_id != 2 and shots.get("photos", []).is_empty():
 				_set_row(i, "FAILED")
 				_note("The window closed before you took a photo.")
 				await _finish({"kind": "failed", "stage": "PHOTO", "why": "No photo was taken" + (" because operations ran out of time." if ops.get("time_out", false) else " before operations ended."), "fix": "Go to the Observation Bay early and take the photo: aim, hold SPACE, release. Walking and jobs use up the minutes."})
@@ -610,7 +617,7 @@ func _run() -> void:
 				_note("Not every photo reached Earth.")
 				await _finish({"kind": "failed", "stage": "RADIO", "why": "Only %d of %d photos reached Earth%s. A comparison needs both photos, so the finding was lost." % [sent.get("received", []).size(), shots.get("photos", []).size(), " because operations ran out of time" if ops.get("time_out", false) else ": the downlink window closed first"], "fix": "Leave enough minutes to send both photos, and keep the beam on Earth until each bar fills."})
 				return
-			if i == 4 and sent.get("received", []).is_empty():
+			if i == 4 and mission_id != 2 and sent.get("received", []).is_empty():
 				_set_row(i, "FAILED")
 				_note("No photo finished sending before the downlink window closed.")
 				await _finish({"kind": "failed", "stage": "RADIO", "why": "No photo reached Earth" + (" because operations ran out of time." if ops.get("time_out", false) else ": the downlink was not finished.") + " Mission data is lost if it never gets home.", "fix": "Send the photos from the Communications room, and keep the beam on Earth until each bar fills."})
@@ -620,7 +627,76 @@ func _run() -> void:
 		PlayerData.evidence = _evidence_list(shots, sent)
 		PlayerData.run.evidence = PlayerData.evidence.duplicate()
 		PlayerData.run.science = ops.get("science", {})
+		PlayerData.run.fault = ops.get("fault", {})
+		if mission_id == 2:
+			out = _impact_outcome(ops)
+		elif not bool(ops.get("science", {}).get("crater", false)):
+			# Four separate outcomes per shot (captured, tagged, received, meets criteria); the contract needs every needed shot to meet them
+			var rows := EvidenceCheck.rows(shots.get("photos", []), sent.get("received", []), state.wide, state.close)
+			PlayerData.evidence = rows
+			PlayerData.run.evidence = rows.duplicate(true)
+			var sm := EvidenceCheck.summary(rows)
+			out["evidence"] = _evidence_text(shots, sent)
+			if not bool(sm["complete"]):
+				var why := String(sm["why"])
+				if bool(ops.get("fault", {}).get("happened", false)):
+					why += " The camera fault cost you the close-up%s." % ((": " + String(ops["fault"].get("lost_reason", ""))) if String(ops["fault"].get("lost_reason", "")) != "" else "")
+				out = {"kind": "partial", "evidence": out["evidence"], "why": why, "fix": sm["fix"], "missing": []}
+				PlayerData.run.partial = true
+		# The way home: separation, entry angle, re-entry, parachutes, splashdown
+		var ret := await _return_phase()
+		PlayerData.run.landing = ret
+		if not bool(ret.get("landed", true)):
+			out = {"kind": "failed", "stage": "LANDING", "why": "Everyone aboard was lost on the way home. See below for how each person died.", "fix": "Set the entry angle in the green, hold to keep the load under the limit, and open the parachutes inside their bands. Treat injured crew in a Medical Bay before the return."}
 	await _finish(out)
+
+
+## Contract 03: the flyer watches and logs, chooses what to send within the packet budget, then plays Mission Control on what arrived.
+func _impact_phase() -> Dictionary:
+	Music.play("orbit")
+	banner.modulate.a = 0.0
+	sub_banner.modulate.a = 0.0
+	Engine.time_scale = 1.0
+	var w := ImpactWatch.new()
+	w.state = state
+	w.crew = PlayerData.run.crew
+	add_child(w)
+	var sent: Dictionary = await w.finished
+	w.queue_free()
+	var im := {"sent": false, "complete": false, "budget": int(sent.get("budget", ImpactWatch.packets(state))), "sent_cost": int(sent.get("sent_cost", 0))}
+	if not bool(sent.get("ok", false)):
+		_note("Nothing was sent to Mission Control.")
+		return {"impact": im}
+	im["sent"] = true
+	im["delivered"] = sent["delivered"]
+	im["case_id"] = String(sent["case"]["case_id"])
+	var mc := ImpactControl.new()
+	mc.case = sent["case"]
+	mc.map = sent["map"]
+	mc.budget = int(sent["budget"])
+	mc.sent_cost = int(sent["sent_cost"])
+	add_child(mc)
+	var rv: Dictionary = await mc.finished
+	mc.queue_free()
+	im["complete"] = bool(rv.get("complete", false))
+	im["eval"] = rv.get("eval", {})
+	im["reveal"] = rv.get("reveal", {})
+	im["verdicts"] = rv.get("verdicts", {})
+	return {"impact": im}
+
+
+func _impact_outcome(ops: Dictionary) -> Dictionary:
+	var im: Dictionary = ops.get("impact", {})
+	PlayerData.run.impact = im
+	PlayerData.evidence = []
+	PlayerData.run.evidence = []
+	var text := "%d of %d packets sent." % [int(im.get("sent_cost", 0)), int(im.get("budget", 0))]
+	if bool(im.get("complete", false)):
+		return {"kind": "success", "evidence": text + " Every verdict was justified by what arrived."}
+	PlayerData.run.partial = true
+	var why := "Nothing reached Mission Control, so there was nothing to review." if not bool(im.get("sent", false)) else "Mission Control could not justify every verdict from what arrived. %d verdict%s not justified." % [int(im.get("eval", {}).get("unjustified", 0)), "" if int(im.get("eval", {}).get("unjustified", 0)) == 1 else "s"]
+	var fix := "Log what you see in more than one window, and send the wide frame for any spot that might be a reflection." if not bool(im.get("sent", false)) else String(im.get("reveal", {}).get("lesson", ""))
+	return {"kind": "partial", "evidence": text, "why": why, "fix": fix, "missing": []}
 
 
 func _leave_to(path: String) -> void:
@@ -813,7 +889,7 @@ func _ascent() -> Dictionary:
 
 	# Your first control in the air: ease the throttle through maximum dynamic pressure
 	var mq := await _ascent_control("maxq")
-	_stress_crew(float(mq["quality"]), "Max Q", String(mq["text"]), "The ship shook through Max Q: the air pressure stayed above the limit too long.", "Shaken by Max Q")
+	_stress_crew(float(mq["quality"]), "Max Q", String(mq["text"]) + " " + String(mq.get("advice", "")), "The ship shook through Max Q: the air pressure stayed above the limit too long.", "Shaken by Max Q")
 	if _action != "":
 		return await _handle_action(_action)
 	var c1 := await _ascent_poll(0)
@@ -834,7 +910,7 @@ func _ascent() -> Dictionary:
 	# Your second control: separate the boosters as their thrust runs out, and watch them fall away
 	var sp := await _ascent_control("sep")
 	await _separate_boosters(float(sp["quality"]))
-	_stress_crew(float(sp["quality"]), "Booster separation", String(sp["text"]), "The boosters separated at the wrong moment and the jolt hurt the crew.", "Rough separation")
+	_stress_crew(float(sp["quality"]), "Booster separation", String(sp["text"]) + " " + String(sp.get("advice", "")), "The boosters separated at the wrong moment and the jolt hurt the crew.", "Rough separation")
 	if _action != "":
 		return await _handle_action(_action)
 	var c2 := await _ascent_poll(1)
@@ -876,6 +952,7 @@ func _ascent_control(mode: String) -> Dictionary:
 	skip_button.hide()
 	var c := AscentControl.new()
 	c.mode = mode
+	c.preview = not AscentControl._seen.get(mode, false)       # the first live attempt starts with a preview and a READY step
 	c.level.connect(func(v: float): _shake = maxf(_shake, 3.0 + v * 9.0))
 	add_child(c)
 	var r: Dictionary = await c.done
@@ -1159,6 +1236,43 @@ static func _crater_failure(ops: Dictionary) -> Dictionary:
 	return {}
 
 
+## Earth orbit, translunar injection and the lunar flyby are different phases of the real mission. A short banner for each,
+## so the player is not told the Moon flyby happens in Earth orbit. The timing is compressed for the game.
+func _phase_transitions() -> void:
+	Engine.time_scale = 1.0
+	banner.modulate.a = 1.0
+	sub_banner.modulate.a = 1.0
+	_say("EARTH ORBIT", "Systems checkout. REAL: Orion spent about a day in high Earth orbit first. (Game: skipped ahead.)", UiStyle.NEAR_WHITE)
+	clock_label.text = "EARTH ORBIT"
+	await _wait(2.0)
+	_say("TRANSLUNAR INJECTION", "REAL: the burn that sends Orion toward the Moon (about +1 day 1.6 hours). A different phase from orbit.", UiStyle.AMBER)
+	clock_label.text = "TRANSLUNAR BURN"
+	await _wait(2.0)
+	_say("LUNAR FLYBY", "REAL: Orion passes the Moon about 4,000 to 6,000 miles up. Mission Operations start now. Minutes below are GAME minutes.", UiStyle.PHOSPHOR)
+	clock_label.text = "LUNAR FLYBY"
+	await _wait(2.2)
+
+
+## The way home. Returns {landed, speed_mph, notes, ...}. Injuries and deaths carry their reasons through the crew alerts.
+func _return_phase() -> Dictionary:
+	banner.modulate.a = 0.0
+	sub_banner.modulate.a = 0.0
+	Engine.time_scale = 1.0
+	Music.play("landing")
+	var rp := ReturnPhase.new()
+	rp.run = PlayerData.run
+	add_child(rp)
+	# keep the crew panel and the damage notices above the return screen
+	for c in get_children():
+		if c is CrewAlerts or c is CrewHearts:
+			move_child(c, -1)
+	var r: Dictionary = await rp.finished
+	rp.queue_free()
+	for n in r.get("notes", []):
+		_note(String(n))
+	return r
+
+
 func _evidence_list(shots: Dictionary, sent: Dictionary) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for ph in shots.get("photos", []):
@@ -1170,7 +1284,7 @@ func _evidence_list(shots: Dictionary, sent: Dictionary) -> Array[Dictionary]:
 
 func _evidence_text(shots: Dictionary, sent: Dictionary) -> String:
 	var parts: Array[String] = []
-	for e in _evidence_list(shots, sent):
+	for e in (_evidence_list(shots, sent) if bool(shots.get("crater", false)) else _evidence_list(shots, sent)):
 		if e["received"]:
 			if String(e.get("crater", "")) != "":
 				parts.append("%s %s" % [String(CraterScience.CRATERS[e["crater"]]["name"]), String(e["confidence"]).to_lower()])
@@ -1301,8 +1415,9 @@ func _finish(out: Dictionary) -> void:
 	abort_button.hide()
 	var kind := String(out.get("kind", "failed"))
 	var success := kind == "success"
-	PlayerData.flight_result = {"success": success, "kind": kind, "stage": out.get("stage", ""), "reason": out.get("why", "")}
-	PlayerData.mission_data_lost = not success
+	var partial := kind == "partial"
+	PlayerData.flight_result = {"success": success, "kind": kind, "stage": out.get("stage", ""), "reason": out.get("why", ""), "partial": partial}
+	PlayerData.mission_data_lost = not (success or partial)
 	if success:
 		PlayerData.complete_contract(mission_id)
 	PlayerData.sync_crew_after_flight()
@@ -1345,6 +1460,7 @@ func _show_result(out: Dictionary) -> void:
 	sub_banner.modulate.a = 0.0
 	var kind := String(out.get("kind", "failed"))
 	var success := kind == "success"
+	var partial := kind == "partial"
 	if success:
 		Sfx.play("fanfare")
 		_confetti()
@@ -1365,9 +1481,9 @@ func _show_result(out: Dictionary) -> void:
 	col.add_theme_constant_override("separation", 12)
 	panel.add_child(col)
 
-	var accent: Color = UiStyle.PHOSPHOR if success else (UiStyle.AMBER if kind in ["aborted", "terminated"] else UiStyle.CORAL)
+	var accent: Color = UiStyle.PHOSPHOR if success else (UiStyle.AMBER if kind in ["aborted", "terminated", "partial"] else UiStyle.CORAL)
 	col.add_child(UiStyle.mono_label("FLIGHT RESULT", 15, Color(UiStyle.NEAR_WHITE, 0.65)))
-	var heads := {"success": "FLIGHT SUCCESSFUL", "failed": "MISSION FAILED", "aborted": "ABORTED", "terminated": "FLIGHT TERMINATED", "early_terminated": "TERMINATED TOO EARLY"}
+	var heads := {"success": "FLIGHT SUCCESSFUL", "partial": "PARTIAL EVIDENCE", "failed": "MISSION FAILED", "aborted": "ABORTED", "terminated": "FLIGHT TERMINATED", "early_terminated": "TERMINATED TOO EARLY"}
 	var head := UiStyle.heading(String(heads.get(kind, "MISSION FAILED")))
 	head.add_theme_font_size_override("font_size", 40)
 	head.add_theme_color_override("font_color", accent)
@@ -1382,7 +1498,9 @@ func _show_result(out: Dictionary) -> void:
 	var lost := "\n\n[color=#ffc45e][b]All mission data is lost.[/b][/color]  Your ship is kept, so you can change it and fly again."
 	match kind:
 		"success":
-			text.text = "Every system held. You took the photos and sent them home.\n\n[color=#c8ff36][b]Evidence on Earth:[/b][/color]  %s.\n[color=#c8ff36][b]Mission data kept.[/b][/color]  The report is next. It is not built yet in this version." % String(out.get("evidence", "none"))
+			text.text = "Every system held. You took the photos and sent them home.\n\n[color=#c8ff36][b]Evidence on Earth:[/b][/color]  %s.\n[color=#c8ff36][b]Contract complete.[/b][/color]  Your ship is now locked for the rest of the game. The report is next." % String(out.get("evidence", "none"))
+		"partial":
+			text.text = "[color=#ffc45e][b]Part of the evidence reached Earth.[/b][/color]\n\n[color=#c8ff36][b]On Earth:[/b][/color]  %s.\n[color=#ffc45e][b]This does not complete Orientale.[/b][/color]  Your ship is not locked. Change it if you like and fly again. The data that arrived is kept." % String(out.get("evidence", "none"))
 		"aborted":
 			text.text = "[color=#ffc45e][b]You called an abort.[/b][/color]  The launch abort system pulled the crew module clear of the rocket. The crew is safe, but an abort ends the mission." + lost
 		"terminated":
@@ -1390,7 +1508,7 @@ func _show_result(out: Dictionary) -> void:
 		"early_terminated":
 			text.text = "[color=#ff6b7a][b]The rocket was still inside its safe corridor.[/b][/color]  Range safety terminates for three reasons: the path crosses a destruct line, the flight is erratic, or the data goes dark. None of them was true yet." + lost
 		_:
-			text.text = "[color=#ff6b7a][b]%s failed.[/b][/color]  %s" % [String(out.get("stage", "")).capitalize(), out.get("why", "")] + lost
+			text.text = "[color=#ff6b7a][b]%s failed.[/b][/color]  Why it failed is explained below." % String(out.get("stage", "")).capitalize() + lost
 	col.add_child(text)
 	var run := PlayerData.run
 	var crew_ok := run.alive_count() == run.crew.size()
@@ -1402,9 +1520,23 @@ func _show_result(out: Dictionary) -> void:
 		dl.add_theme_font_size_override("font_size", 16)
 		dl.add_theme_color_override("font_color", UiStyle.CORAL)
 		col.add_child(dl)
+	if not run.landing.is_empty():
+		var ll := Label.new()
+		ll.text = "Splashdown at %d mph (NASA reported about 20 mph on Artemis II).  Crew alive after landing: %d of %d." % [int(round(float(run.landing.get("speed_mph", 0.0)))), int(run.landing.get("alive", 0)), run.crew.size()]
+		ll.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ll.add_theme_font_size_override("font_size", 16)
+		col.add_child(ll)
+	if run.fault.get("happened", false):
+		col.add_child(UiStyle.mono_label("THE CALL YOU MADE", 14, UiStyle.AMBER))
+		var fl_ := Label.new()
+		var fc: Dictionary = run.fault["cost"]
+		fl_.text = "%s.  It cost %d min, %d power and %d energy (walking included).  Close-up: %s." % [String(run.fault["label"]), int(round(float(fc["time"]))), int(round(float(fc["power"]))), int(round(float(fc["energy"]))), "taken" if bool(run.fault["close_taken"]) else "not taken"]
+		fl_.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fl_.add_theme_font_size_override("font_size", 16)
+		col.add_child(fl_)
 	if not success:
-		# Say exactly why it failed, and what would change it
-		col.add_child(UiStyle.mono_label("WHY IT FAILED", 14, UiStyle.CORAL))
+		# Say exactly why it failed (or is not complete), and what would change it
+		col.add_child(UiStyle.mono_label("WHY IT IS NOT COMPLETE" if partial else "WHY IT FAILED", 14, UiStyle.AMBER if partial else UiStyle.CORAL))
 		var why_text := String(out.get("why", ""))
 		if why_text == "":
 			match kind:
@@ -1482,15 +1614,15 @@ func _show_result(out: Dictionary) -> void:
 	var back := Button.new()
 	var over := bool(PlayerData.campaign["over"])
 	var locked := bool(PlayerData.campaign["locked"])
-	back.text = "SEE THE REPORT" if success else ("NEW CAMPAIGN" if over else ("BUILD AGAIN" if not locked else "BACK TO CONTRACTS"))
+	back.text = "SEE THE REPORT" if (success or partial) else ("NEW CAMPAIGN" if over else ("BUILD AGAIN" if not locked else "BACK TO CONTRACTS"))
 	back.theme_type_variation = &"PrimaryButton"
 	back.add_theme_font_size_override("font_size", 28)
 	back.custom_minimum_size = Vector2(380, 100)
 	back.pressed.connect(func():
-		if success:
+		if success or partial:
 			get_tree().change_scene_to_file("res://report_screen.tscn")
 		elif over:
-			PlayerData.new_campaign()
+			PlayerData.start_over()
 			get_tree().change_scene_to_file("res://mission_select.tscn")
 		elif locked:
 			get_tree().change_scene_to_file("res://mission_select.tscn")

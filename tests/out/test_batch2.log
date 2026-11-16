@@ -1,0 +1,30 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  the flight termination system is armed at T-4:30 (press kit), not T-5:00
+PASS  and it asks for the Launch Director's call
+PASS  the T-2:02 ICPS and T-2:00 booster battery entries are there
+PASS  the count is in time order
+PASS  the sequencer lockout is still T-0:33
+PASS  a stop after T-1:30 is described as a recycle
+PASS  in the late zone the guidance is the recycle rule
+PASS  holding after T-1:30 recycles the count to T-10:00
+PASS  clicking the dark interior is correct
+PASS  clicking a bright ring is correct
+PASS  wrong clicks are marked wrong (interior missed, rings missed at the centre)
+PASS  the report labels the real NASA view and the simulated photos
+PASS  the report credits NASA beside the real image
+PASS  the report links to the NASA source record
+PASS  the saved report credits NASA and lists the source links
+PASS  the saved report says it is a fictional mission inspired by Artemis II
+PASS  the sources panel has direct links
+PASS  the blackout is forecast with the time contact returns
+PASS  there is exactly one blackout window
+PASS  the reorder button exists but is disabled before the blackout
+PASS  the Moon is blocking contact
+PASS  during the blackout the queue can be reordered
+PASS  the coach says when contact returns
+PASS  pressing SEND FIRST changes the order
+PASS  a long response wraps to more than one line
+PASS  and is not clipped or cut with an ellipsis
+FAILS: 0

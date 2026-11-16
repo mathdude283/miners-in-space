@@ -1,0 +1,6 @@
+ERROR: Parse JSON failed. Error at line 0: Expected 'true', 'false', or 'null', got 'this'
+   at: parse_string (core/io/json.cpp:629)
+   GDScript backtrace (most recent call first):
+       [0] load_case (res://impact_case.gd:196)
+       [1] _run (res://tests/test_impact.gd:161)
+       [2] _initialize (res://tests/test_impact.gd:11)

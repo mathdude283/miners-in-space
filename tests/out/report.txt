@@ -1,0 +1,2 @@
+test_load              4     s  PASS
+Moonbound tests: 1 of 1 passed

@@ -32,7 +32,17 @@ const TASKS := {
 	"galley": {"label": "EAT", "kind": "eat", "time": 3.0, "power": 0.0, "energy": -25.0,
 		"desc": "A hot meal wins back some energy, faster than sleep."},
 	"medical": {"label": "TREAT", "kind": "heal", "time": 5.0, "power": 1.0, "energy": 0.0,
-		"desc": "Treat whoever you are steering. It mends their health."},
+		"desc": "Walk a hurt or sick crew member here (steer them with 1, 2 or 3) and press E. Treatment mends their health."},
+	"flight-deck": {"label": "DIAGNOSE CAMERA FAULT", "kind": "diagnose", "time": 5.0, "power": 1.0, "energy": 6.0,
+		"desc": "Trace a fault in the camera system from the Flight Deck. It only helps if the camera has failed."},
+}
+## Jobs that only exist while the camera is faulted. The restore job replaces the Observation Bay's photo job until the
+## camera is back. All numbers are GAME rules, read here by the decision card and charged by _perform, so they cannot differ.
+const FAULT_TASKS := {
+	"diagnose": {"label": "DIAGNOSE CAMERA FAULT", "kind": "diagnose", "time": 5.0, "power": 1.0, "energy": 6.0,
+		"desc": "Trace the camera fault from the Flight Deck. Then go back to the Observation Bay for the close-up."},
+	"restore": {"label": "RESTORE THE CAMERA", "kind": "restore", "time": 2.0, "power": 4.0, "energy": 4.0,
+		"desc": "Divert reserve power to bring the camera back online. Then take the close-up."},
 }
 
 ## Contract 02 changes what some rooms do. The Flight Deck plans the Sun pass, the Observation Bay photographs a crater,
@@ -80,6 +90,9 @@ var _chips: Array[Dictionary] = []          # {panel, energy, health}
 var _prompt_title: Label
 var _prompt_body: Label
 var _prompt_cost: Label
+var _prompt_travel: Label
+var _prompt_perks: Label
+var _aim_pad := -1                           # the pad the player last clicked or pressed toward
 var _prompt_status: Label
 var _finish_btn: Button
 var _howto: HowToCard
@@ -91,6 +104,17 @@ var _obs := 0                                # observations made so far
 var _compare := {}                           # the Science Lab result: {says, eval}
 var _events: Array[Dictionary] = []
 var _event_i := 0
+## The Orientale camera fault (once per mission, the same every run so routes can be compared)
+var _fault_done := false
+var _fault_state := ""                       # "" | choice | diagnose | restore | send | fixed | closed | lost
+var _fault_route := ""                       # diagnose | divert | send
+var _fault := {"ledger": []}                 # what the call cost: [{what, time, power, energy}]
+var _walk_acc := {"time": 0.0, "energy": 0.0}   # walking since the last job (added to the next job's entry)
+var _next_text := ""
+var _next_room := ""
+var _next_label: Label
+var _hint_room := ""                         # the pad to walk to now: the call's next step, or the Medical Bay when someone is hurt
+var _hint_text := ""
 
 
 func _ready() -> void:
@@ -124,6 +148,13 @@ func _task_for(room_id: String) -> Dictionary:
 		t["desc"] = "Send both photos and the comparison home. Both have to arrive."
 		return t
 	return TASKS.get(room_id, {})
+
+
+## The job a pad offers right now. The Observation Bay offers RESTORE while that is the next step of the fault.
+func _task_of(pad: Dictionary) -> Dictionary:
+	if String(pad["room"]) == "observation" and _fault_state == "restore":
+		return FAULT_TASKS["restore"]
+	return pad["task"]
 
 
 ## Minutes a job takes. A fit scientist is quicker in the lab (GAME rule).
@@ -260,6 +291,13 @@ func _build_hud() -> void:
 		l.add_theme_font_size_override("font_size", 18)
 		ov.add_child(l)
 		_obj_labels.append(l)
+	_next_label = Label.new()
+	_next_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_next_label.custom_minimum_size = Vector2(380, 0)
+	_next_label.add_theme_font_size_override("font_size", 18)
+	_next_label.add_theme_color_override("font_color", UiStyle.AMBER)
+	_next_label.hide()
+	ov.add_child(_next_label)
 
 	# Resources (right)
 	var rp := PanelContainer.new()
@@ -290,8 +328,8 @@ func _build_hud() -> void:
 
 	# What the pad under you does
 	var pp := PanelContainer.new()
-	pp.position = Vector2(530, 712)
-	pp.custom_minimum_size = Vector2(1108, 140)
+	pp.position = Vector2(530, 690)
+	pp.custom_minimum_size = Vector2(1108, 184)
 	pp.add_theme_stylebox_override("panel", UiStyle.panel(16, 0.92))
 	_layer.add_child(pp)
 	var pv := VBoxContainer.new()
@@ -304,9 +342,15 @@ func _build_hud() -> void:
 	_prompt_body.add_theme_font_size_override("font_size", 19)
 	_prompt_body.custom_minimum_size = Vector2(1060, 0)
 	pv.add_child(_prompt_body)
-	_prompt_cost = UiStyle.mono_label("", 15, Color(UiStyle.NEAR_WHITE, 0.75))
+	_prompt_travel = UiStyle.mono_label("", 16, Color(UiStyle.NEAR_WHITE, 0.85))
+	pv.add_child(_prompt_travel)
+	_prompt_cost = UiStyle.mono_label("", 16, Color(UiStyle.NEAR_WHITE, 0.85))
 	pv.add_child(_prompt_cost)
-	_prompt_status = UiStyle.mono_label("", 18, UiStyle.NEAR_WHITE)
+	_prompt_perks = UiStyle.mono_label("", 14, Color(UiStyle.PHOSPHOR, 0.9))
+	_prompt_perks.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_prompt_perks.custom_minimum_size = Vector2(1060, 0)
+	pv.add_child(_prompt_perks)
+	_prompt_status = UiStyle.mono_label("", 19, UiStyle.NEAR_WHITE)
 	pv.add_child(_prompt_status)
 
 	# Finish
@@ -389,13 +433,19 @@ func _draw_deck() -> void:
 	_deck.draw_rect(Rect2(x0, DECK_Y + 12.0, x1 - x0, 4.0), Color(UiStyle.COBALT, 0.9))
 	var t := Time.get_ticks_msec() / 1000.0
 	for p in _pads:
-		var task: Dictionary = p["task"]
+		var task: Dictionary = _task_of(p)
 		var usable := not task.is_empty() and check_task(task) == ""
 		var col := UiStyle.PHOSPHOR if usable else (Color(UiStyle.CHROME, 0.5) if not task.is_empty() else Color(UiStyle.CHROME, 0.25))
 		var px := float(p["x"])
 		var glow := 0.25 + 0.2 * sin(t * 4.0) if usable else 0.12
 		_deck.draw_circle(Vector2(px, DECK_Y + 6.0), 34.0, Color(col, glow))
 		_deck.draw_rect(Rect2(px - 40.0, DECK_Y + 2.0, 80.0, 8.0), Color(col, 0.95))
+		# The next step of the call: a pulsing amber ring and an arrow over the room to walk to
+		if _hint_room != "" and String(p["room"]) == _hint_room:
+			var pulse := 0.5 + 0.5 * sin(t * 5.0)
+			_deck.draw_arc(Vector2(px, DECK_Y + 6.0), 46.0 + 4.0 * pulse, 0, TAU, 40, Color(UiStyle.AMBER, 0.95), 4.0, true)
+			var ay := DECK_Y - 235.0 + 8.0 * pulse
+			_deck.draw_colored_polygon(PackedVector2Array([Vector2(px - 22, ay), Vector2(px + 22, ay), Vector2(px, ay + 30)]), Color(UiStyle.AMBER, 0.95))
 
 
 # ---------------------------------------------------------------- crew and movement
@@ -404,6 +454,7 @@ func _select(i: int) -> void:
 	if i < 0 or i >= _astros.size() or run.is_dead(i):
 		return
 	_sel = i
+	_aim_pad = -1                       # a new person starts with no pad picked
 	for k in _astros.size():
 		_astros[k].selected = k == i
 		if k != i:
@@ -437,6 +488,7 @@ func _pad_pressed(idx: int) -> void:
 	if absf(_x(_sel) - float(_pads[idx]["x"])) <= NEAR:
 		interact()
 	else:
+		_aim_pad = idx
 		_target_x = float(_pads[idx]["x"])
 
 
@@ -572,6 +624,8 @@ func _walk(delta: float) -> void:
 	if moved > 0.0:
 		_pass_time(moved / 100.0 * TIME_PER_100PX)
 		run.tire(_sel, moved / 100.0 * ENERGY_PER_100PX)
+		_walk_acc["time"] += moved / 100.0 * TIME_PER_100PX
+		_walk_acc["energy"] += moved / 100.0 * ENERGY_PER_100PX
 		_step += delta
 		if _step > 0.28:
 			_step = 0.0
@@ -608,6 +662,20 @@ func check_task(task: Dictionary) -> String:
 				return "Everything has been sent."
 			if _crater and _compare.is_empty():
 				return "Compare the photos in the Science Lab first."
+		"photo":
+			match _fault_state:
+				"choice", "diagnose":
+					return "The camera is faulted. Diagnose it at the Flight Deck first."
+				"send":
+					return "The camera is faulted. First send the wide shot from Communications."
+				"lost":
+					return "The camera cannot be recovered: not enough time or power is left to restore it, shoot and send."
+		"diagnose":
+			if _fault_state != "diagnose":
+				return "Nothing to diagnose." if _fault_state == "" else "The camera fault is already handled."
+		"restore":
+			if _fault_state != "restore":
+				return "The camera is not waiting for a restore."
 		"plan":
 			if _obs >= 2:
 				return "Both observations are done."
@@ -654,7 +722,7 @@ func interact() -> void:
 		_say("Walk to a pad first, then press E.")
 		Sfx.play("error", -6.0)
 		return
-	var task: Dictionary = pad["task"]
+	var task: Dictionary = _task_of(pad)
 	if task.is_empty():
 		_say("Nothing to do in this room for this contract.")
 		Sfx.play("error", -6.0)
@@ -674,6 +742,12 @@ func _perform(task: Dictionary) -> void:
 		await _do_plan(task)
 		_busy = false
 		return
+	var walked: Dictionary = _walk_acc.duplicate()
+	_walk_acc = {"time": 0.0, "energy": 0.0}
+	if _fault_state in ["diagnose", "restore", "send", "fixed"] and String(task["kind"]) in ["diagnose", "restore", "photo", "send"]:
+		# Each action the call causes is written down once, with the walking that led to it
+		_fault["ledger"].append({"what": String(task["label"]), "kind": String(task["kind"]),
+			"time": _time_of(task) + float(walked["time"]), "power": float(task["power"]), "energy": float(task["energy"]) + float(walked["energy"])})
 	run.spend("time", _time_of(task))
 	run.spend("power", float(task["power"]))
 	_metabolize(_time_of(task))
@@ -689,6 +763,8 @@ func _perform(task: Dictionary) -> void:
 			await _do_crater_photo()
 		"compare":
 			await _do_compare()
+		"diagnose", "restore":
+			_camera_back(String(task["kind"]))
 		"send":
 			await _do_send()
 		"rest", "eat":
@@ -709,6 +785,8 @@ func _do_photo() -> void:
 		perks["rows"].append({"game": "photo", "label": "TIRED", "on": true, "text": "shakier hands", "off": ""})
 	var g := PhotoGame.new()
 	g.has_lens = {"wide": state.wide, "close": state.close}
+	if _fault_state == "fixed":
+		g.has_lens = {"wide": false, "close": state.close}      # the camera is back for the close-up
 	g.met_at_start = 34 + int(float(run.resources["time"]["max"]) - run.left("time"))
 	g.target = _mission["target"]
 	g.perks = perks
@@ -726,9 +804,261 @@ func _do_photo() -> void:
 		_say("Photos kept: %s." % ", ".join(_shots.keys().map(func(k): return "%s %s" % [k, "*".repeat(int(_shots[k]["stars"]))])))
 	else:
 		_say("The window closed without a photo.")
+	if _fault_state == "fixed":
+		_fault_state = "closed"
+		_fault["close_taken"] = _shots.has("close")
+		_next_room = "communications" if _shots.has("close") else ""
+		_next_text = "Send the close-up from Communications" if _shots.has("close") else ""
+	elif not _crater:
+		await _maybe_fault()
 
 
 ## The Flight Deck job. The player picks the second observation (once) and the Sun pass; waiting for the Sun costs time.
+# ---------------------------------------------------------------- the camera fault
+
+func _pad_x(room: String) -> float:
+	for p in _pads:
+		if p["room"] == room:
+			return float(p["x"])
+	return -1.0
+
+
+## A rough walking bill between two places, shown on the card before the choice. The real bill is charged as they walk.
+func _walk_cost(from_x: float, room: String) -> Dictionary:
+	var to_x := _pad_x(room)
+	if to_x < 0.0 or from_x < 0.0:
+		return {"time": 0.0, "energy": 0.0}
+	var d := absf(from_x - to_x) / 100.0
+	return {"time": d * TIME_PER_100PX, "energy": d * ENERGY_PER_100PX}
+
+
+func _row(label: String, time: float, power: float, energy: float, later := false) -> Dictionary:
+	return {"label": label, "time": time, "power": power, "energy": energy, "later": later}
+
+
+func _sum(rows: Array, only_now := true) -> Dictionary:
+	var t := {"time": 0.0, "power": 0.0, "energy": 0.0}
+	for r in rows:
+		if only_now and bool(r.get("later", false)):
+			continue
+		t["time"] += float(r["time"])
+		t["power"] += float(r["power"])
+		t["energy"] += float(r["energy"])
+	return t
+
+
+func _best_energy() -> float:
+	var best := 0.0
+	for i in run.crew.size():
+		if not run.is_dead(i):
+			best = maxf(best, float(run.crew[i]["energy"]))
+	return best
+
+
+## What the camera-fault call shows: current resources, the three routes with their costs and whether each can be done,
+## and what each seat on the crew has to say. All numbers come from the same task tables that _perform charges.
+func fault_info() -> Dictionary:
+	var photo: Dictionary = TASKS["observation"]
+	var send: Dictionary = TASKS["communications"]
+	var diag: Dictionary = FAULT_TASKS["diagnose"]
+	var rest: Dictionary = FAULT_TASKS["restore"]
+	var here := _x(_sel)
+	var t_left := run.left("time")
+	var p_left := run.left("power")
+	var best_e := _best_energy()
+	var wings := state.wings
+	var wing_note := ""
+	if wings > 0:
+		wing_note = "   (includes +%d from %d solar wing%s)" % [int(PlayerData.WING_RESERVE * wings), wings, "" if wings == 1 else "s"]
+	var who := String(run.crew[_sel]["name"])
+	var now := "NOW   TIME %d MIN   POWER %d%s   %s'S ENERGY %d" % [int(ceil(t_left)), int(ceil(p_left)), wing_note, who.to_upper(), int(float(run.crew[_sel]["energy"]))]
+
+	var w_deck := _walk_cost(here, "flight-deck")
+	var w_back := _walk_cost(_pad_x("flight-deck"), "observation")
+	var w_comms := _walk_cost(_pad_x("observation"), "communications")
+	var w_comms_now := _walk_cost(here, "communications")
+	var w_to_obs := _walk_cost(_pad_x("communications"), "observation")
+	var w_obs_now := _walk_cost(here, "observation")
+
+	# A: diagnose at the Flight Deck
+	var rows_a: Array = [
+		_row("Walk to Flight Deck and back", float(w_deck["time"]) + float(w_back["time"]), 0.0, float(w_deck["energy"]) + float(w_back["energy"])),
+		_row("Diagnose the fault", float(diag["time"]), float(diag["power"]), float(diag["energy"])),
+		_row("Take the close-up", float(photo["time"]), float(photo["power"]), float(photo["energy"])),
+		_row("Walk and send both photos", float(w_comms["time"]) + float(send["time"]), float(send["power"]), float(w_comms["energy"]) + float(send["energy"])),
+	]
+	# B: divert reserve power and restore at the Observation Bay
+	var rows_b: Array = [
+		_row("Restore the camera here", float(rest["time"]) + float(w_obs_now["time"]), float(rest["power"]), float(rest["energy"]) + float(w_obs_now["energy"])),
+		_row("Take the close-up", float(photo["time"]), float(photo["power"]), float(photo["energy"])),
+		_row("Walk and send both photos", float(w_comms["time"]) + float(send["time"]), float(send["power"]), float(w_comms["energy"]) + float(send["energy"])),
+	]
+	# C: send the wide shot now; a close-up retry only if what is left can pay for all of it
+	var rows_c: Array = [
+		_row("Walk and send the wide shot", float(w_comms_now["time"]) + float(send["time"]), float(send["power"]), float(w_comms_now["energy"]) + float(send["energy"])),
+		_row("Later: restore the camera", float(rest["time"]) + float(w_to_obs["time"]), float(rest["power"]), float(rest["energy"]) + float(w_to_obs["energy"]), true),
+		_row("Later: take the close-up", float(photo["time"]), float(photo["power"]), float(photo["energy"]), true),
+		_row("Later: walk and send it", float(w_comms["time"]) + float(send["time"]), float(send["power"]), float(w_comms["energy"]) + float(send["energy"]), true),
+	]
+	var routes: Array[Dictionary] = []
+	routes.append(_route("diagnose", "DIAGNOSE THE FAULT", "Walk a crew member to the FLIGHT DECK pad and diagnose it. Then go back to the OBSERVATION BAY for the close-up. Costs time, saves power.", rows_a, _sum(rows_a), t_left, p_left, best_e,
+		"Uses less power, so more is left for the downlink."))
+	routes.append(_route("divert", "DIVERT RESERVE POWER", "Stay at the OBSERVATION BAY and restore the camera there, then take the close-up. Costs power, saves the walk.", rows_b, _sum(rows_b), t_left, p_left, best_e,
+		"Uses reserve power. Saves the walk to the Flight Deck."))
+	var now_c := _sum(rows_c)
+	var later_c := _sum(rows_c.filter(func(r): return bool(r.get("later", false))), false)
+	var retry_why := ""
+	if t_left - float(now_c["time"]) < float(later_c["time"]):
+		retry_why = "After sending there will not be enough time to restore, shoot and send again (needs %d min, %d left)." % [int(ceil(float(later_c["time"]))), int(floor(t_left - float(now_c["time"])))]
+	elif p_left - float(now_c["power"]) < float(later_c["power"]):
+		retry_why = "After sending there will not be enough power to restore, shoot and send again (needs %d, %d left)." % [int(ceil(float(later_c["power"]))), int(floor(p_left - float(now_c["power"])))]
+	var rc := _route("send", "SEND THE WIDE SHOT FIRST", "Walk to COMMUNICATIONS, send the wide shot and steer the dish to Earth. That evidence is safe. A close-up retry comes after, if you can afford it.", rows_c, now_c, t_left, p_left, best_e,
+		"Secures the evidence you already have.")
+	rc["total"] = _sum(rows_c, false)
+	if bool(rc["ok"]):
+		rc["verdict"] = ("Close-up retry: " + ("not possible. " + retry_why if retry_why != "" else "possible if the crew can pay for all of it.")) + "  Wide shot is safe either way."
+	routes.append(rc)
+	if _pad_x("flight-deck") < 0.0:
+		routes[0]["ok"] = false
+		routes[0]["why"] = "The ship has no Flight Deck to diagnose from."
+		routes[0]["verdict"] = routes[0]["why"]
+	if _pad_x("communications") < 0.0:
+		routes[2]["ok"] = false
+		routes[2]["why"] = "The ship has no Communications room to send from."
+		routes[2]["verdict"] = routes[2]["why"]
+
+	# What each seat has to say (by seat, not by who sits there)
+	var advice: Array[Dictionary] = []
+	var perks := ShipData.flight_perks(state, run.crew)
+	var shake := int(round(float(perks["shake"]) * 100.0))
+	for role in ["PILOT", "SCIENTIST", "COMMANDER"]:
+		var c := run.crew_member(role)
+		if c.is_empty() or float(c["health"]) <= 0.0:
+			continue
+		var text := ""
+		match role:
+			"PILOT":
+				text = "A close-up shakes 80%% more than a wide shot. With our steady hands%s the shake is %d%% of normal, so a close-up is a good bet." % [" and the Flight Deck" if state.has_room("flight-deck") else "", shake]
+			"SCIENTIST":
+				text = "The wide shot shows WHERE the basin is. The close-up shows WHAT THE SURFACE IS LIKE. Without it we only have half the evidence."
+			"COMMANDER":
+				var after_time := t_left - float(photo["time"]) - float(send["time"])
+				var after_power := p_left - float(photo["power"]) - float(send["power"])
+				text = "We have %d min and %d power. A close-up and a send cost %d min and %d power. That leaves about %d min and %d power for the fix and the walking." % [int(ceil(t_left)), int(ceil(p_left)), int(float(photo["time"]) + float(send["time"])), int(float(photo["power"]) + float(send["power"])), int(floor(after_time)), int(floor(after_power))]
+		advice.append({"role": role, "name": String(c["name"]), "char": String(c["char"]), "text": text})
+	return {"now": now, "routes": routes, "advice": advice, "time_left": t_left, "power_left": p_left}
+
+
+func _route(id: String, title: String, what: String, rows: Array, total: Dictionary, t_left: float, p_left: float, best_e: float, good: String) -> Dictionary:
+	var why := ""
+	if float(total["time"]) > t_left + 0.001:
+		why = "Not enough time: needs %d min, %d left." % [int(ceil(float(total["time"]))), int(floor(t_left))]
+	elif float(total["power"]) > p_left + 0.001:
+		why = "Not enough power: needs %d, %d left." % [int(ceil(float(total["power"]))), int(floor(p_left))]
+	else:
+		var biggest := 0.0
+		for r in rows:
+			if not bool(r.get("later", false)):
+				biggest = maxf(biggest, float(r["energy"]))
+		if best_e < minf(biggest, 10.0):
+			why = "Nobody has enough energy left for the biggest job (%d needed, best is %d)." % [int(ceil(minf(biggest, 10.0))), int(best_e)]
+	return {"id": id, "title": title, "what": what, "rows": rows, "total": total, "ok": why == "", "why": why, "verdict": good if why == "" else why}
+
+
+## Offer the call once the conditions hold: a tagged wide shot, no close-up, and a ship that can take one.
+func _maybe_fault() -> void:
+	if _fault_done or mission_id != 0 or not state.close:
+		return
+	if not _shots.has("wide") or _shots.has("close") or not _shots["wide"].has("tag_ok"):
+		return
+	_fault_done = true
+	_fault_state = "choice"
+	var card := FaultCard.new()
+	card.info = fault_info()
+	add_child(card)
+	var route: String = await card.chosen
+	card.queue_free()
+	choose_fault(route)
+
+
+## Carry out the Flight Director's call: set what the crew has to do next. Public so a test can stand in for the click.
+func choose_fault(route: String) -> void:
+	_fault_route = route
+	_fault["route"] = route
+	_fault["label"] = {"diagnose": "Diagnose the fault", "divert": "Divert reserve power", "send": "Send the wide shot first"}.get(route, route)
+	_fault["at"] = {"time": run.left("time"), "power": run.left("power")}
+	match route:
+		"diagnose":
+			_fault_state = "diagnose"
+			_next_room = "flight-deck"
+			_next_text = "Diagnose camera fault at Flight Deck"
+		"divert":
+			_fault_state = "restore"
+			_next_room = "observation"
+			_next_text = "Restore the camera at the Observation Bay"
+		_:
+			_fault_state = "send"
+			_next_room = "communications"
+			_next_text = "Send the wide shot from Communications"
+	_walk_acc = {"time": 0.0, "energy": 0.0}
+	Sfx.play("go")
+	_say("Call made: %s. %s." % [String(_fault["label"]), _next_text])
+
+
+## The diagnose or restore job finished: the camera is back and the close-up can be taken.
+func _camera_back(kind: String) -> void:
+	_fault_state = "fixed"
+	_next_room = "observation"
+	_next_text = "Take the close-up at the Observation Bay"
+	Sfx.play("go")
+	_say("Camera back online. Go to the Observation Bay and take the close-up." if kind == "diagnose" else "Camera restored. Take the close-up.")
+
+
+## After the wide shot has been sent first: is a retry affordable? Empty string if so, else why not.
+func _retry_check() -> String:
+	var rest: Dictionary = FAULT_TASKS["restore"]
+	var photo: Dictionary = TASKS["observation"]
+	var send: Dictionary = TASKS["communications"]
+	var w1 := _walk_cost(_x(_sel), "observation")
+	var w2 := _walk_cost(_pad_x("observation"), "communications")
+	var need_t := float(rest["time"]) + float(photo["time"]) + float(send["time"]) + float(w1["time"]) + float(w2["time"])
+	var need_p := float(rest["power"]) + float(photo["power"]) + float(send["power"])
+	if run.left("time") < need_t:
+		return "Not enough time to restore, shoot and send again (needs %d min, %d left)." % [int(ceil(need_t)), int(floor(run.left("time")))]
+	if run.left("power") < need_p:
+		return "Not enough power to restore, shoot and send again (needs %d, %d left)." % [int(ceil(need_p)), int(floor(run.left("power")))]
+	if _best_energy() < float(photo["energy"]):
+		return "Nobody has enough energy left to take the close-up."
+	return ""
+
+
+func _after_wide_sent() -> void:
+	_fault["wide_first"] = true
+	var why := _retry_check()
+	if why == "":
+		_fault_state = "restore"
+		_next_room = "observation"
+		_next_text = "Retry the close-up: restore the camera at the Observation Bay"
+		_say("Wide shot is safe. A close-up retry is still possible.")
+	else:
+		_fault_state = "lost"
+		_fault["lost_reason"] = why
+		_next_room = ""
+		_next_text = ""
+		_say("Wide shot is safe. No close-up retry: " + why)
+
+
+func fault_summary() -> Dictionary:
+	var cost := {"time": 0.0, "power": 0.0, "energy": 0.0}
+	for e in _fault["ledger"]:
+		cost["time"] += float(e["time"])
+		cost["power"] += float(e["power"])
+		cost["energy"] += float(e["energy"])
+	return {"happened": _fault_done, "route": _fault_route, "label": String(_fault.get("label", "")), "ledger": _fault["ledger"].duplicate(true),
+		"cost": cost, "state": _fault_state, "close_taken": bool(_fault.get("close_taken", _shots.has("close"))),
+		"wide_first": bool(_fault.get("wide_first", false)), "lost_reason": String(_fault.get("lost_reason", ""))}
+
+
 func _do_plan(task: Dictionary) -> void:
 	var card := PassCard.new()
 	card.mission = _mission
@@ -843,6 +1173,8 @@ func _do_send() -> void:
 			run.complete("send")
 	elif not _received.is_empty():
 		run.complete("send")
+	if _fault_state == "send" and _received.has("wide"):
+		_after_wide_sent()
 	var lost: Array = r.get("lost", [])
 	_say("Sent. %d reached Earth%s." % [r.get("received", []).size(), (", %d did not finish" % lost.size()) if not lost.is_empty() else ""])
 
@@ -898,6 +1230,7 @@ func _end(time_out: bool) -> void:
 		"shots": {"photos": photos, "tags_ok": tags_ok},
 		"sent": {"received": _received.duplicate(), "lost": lost},
 		"time_out": time_out, "notes": notes,
+		"fault": fault_summary(),
 		"science": {"crater": _crater, "branch": _branch, "done": not _compare.is_empty(), "eval": _compare.get("eval", {}), "says": _compare.get("says", {}),
 			"observations": _obs},
 	})
@@ -914,7 +1247,7 @@ func _refresh() -> void:
 	if _time_label == null:
 		return   # the screen is still being built
 	var left_t := int(ceil(run.left("time")))
-	_time_label.text = "TIME LEFT   %d MIN" % left_t
+	_time_label.text = "MISSION TIME LEFT   %d MIN" % left_t
 	_power_label.text = "POWER LEFT   %d" % int(ceil(run.left("power")))
 	_time_bar.queue_redraw()
 	_power_bar.queue_redraw()
@@ -922,6 +1255,35 @@ func _refresh() -> void:
 		var o: Dictionary = run.objectives[i]
 		_obj_labels[i].text = ("[X]  " if o["done"] else "[  ]  ") + String(o["label"])
 		_obj_labels[i].add_theme_color_override("font_color", UiStyle.PHOSPHOR if o["done"] else Color(UiStyle.NEAR_WHITE, 0.92))
+	_hint_room = _next_room
+	_hint_text = _next_text
+	if _hint_text == "" and _pad_x("medical") >= 0.0:
+		# Someone is hurt and the ship has a Medical Bay: point the way
+		for i in run.crew.size():
+			if not run.is_dead(i) and float(run.crew[i]["health"]) < 99.5:
+				_hint_room = "medical"
+				_hint_text = "%s is hurt. Steer %s to the Medical Bay (key %d) and press E to treat." % [run.crew[i]["name"], run.crew[i]["name"], i + 1]
+				break
+	if _next_label != null:
+		_next_label.visible = _hint_text != ""
+		_next_label.text = "NEXT:  " + _hint_text
+	for p in _pads:
+		var b: Button = p["btn"]
+		if b != null:
+			var tk: Dictionary = _task_of(p)
+			var idx_p := _pads.find(p)
+			var in_range := absf(_x(_sel) - float(p["x"])) <= NEAR
+			var en_route: bool = idx_p == _aim_pad and _target_x >= 0.0 and not in_range
+			var room_name := String(ShipData.room(p["room"])["name"])
+			if in_range and not tk.is_empty():
+				b.text = String(tk["label"])
+			elif en_route:
+				b.text = "WALKING..."
+			else:
+				b.text = "WALK TO
+" + room_name.to_upper()
+			var hot: bool = _hint_room != "" and String(p["room"]) == _hint_room
+			b.modulate = Color(1.0, 0.82, 0.4, 1.0) if hot else Color(1, 1, 1, 1.0 if not _task_of(p).is_empty() else 0.55)
 	for i in _chips.size():
 		var sb := UiStyle.panel(12, 0.9)
 		if i == _sel:
@@ -939,50 +1301,119 @@ func _refresh() -> void:
 		_chips[i]["health"].queue_redraw()
 		var stl: Label = _chips[i]["status"]
 		stl.text = run.status_line(i)
+		if not run.is_dead(i) and float(run.crew[i]["health"]) < 99.5 and _pad_x("medical") < 0.0:
+			stl.text = "Hurt. No Medical Bay aboard."
 		stl.add_theme_color_override("font_color", UiStyle.CORAL if float(run.crew[i]["health"]) < 100.0 else Color(UiStyle.NEAR_WHITE, 0.8))
 	_refresh_prompt()
+
+
+## Travel cost from where the steered crew member is to a pad (the same numbers _walk charges): {time, energy}.
+func travel_cost_to(pad_index: int) -> Dictionary:
+	if pad_index < 0 or pad_index >= _pads.size():
+		return {"time": 0.0, "energy": 0.0}
+	var d := absf(_x(_sel) - float(_pads[pad_index]["x"])) / 100.0
+	return {"time": d * TIME_PER_100PX, "energy": d * ENERGY_PER_100PX}
+
+
+## What the ship and crew bought for this job, read from the rules that apply the bonuses. Short, and only where it is used.
+func perks_line(task: Dictionary) -> String:
+	var perks := ShipData.flight_perks(state, run.crew)
+	var kind := String(task.get("kind", ""))
+	if kind in ["photo", "restore", "crater_photo"]:
+		var bits: Array[String] = []
+		if state.has_room("flight-deck"):
+			bits.append("Flight Deck -20% shake")
+		var pil := run.crew_member("PILOT")
+		if not pil.is_empty() and float(pil["health"]) > 0.0:
+			bits.append("%s (pilot) -10%% shake" % String(pil["name"]))
+		if state.has_room("science-lab"):
+			bits.append("Science Lab: a third try per lens")
+		if bits.is_empty():
+			return "YOUR SHIP: no camera bonuses. A Flight Deck and a pilot steady the camera."
+		return "YOUR SHIP BOUGHT YOU: steadier camera, shake x%.2f  (%s)" % [float(perks["shake"]), ", ".join(bits)]
+	if kind == "send":
+		var w := state.wings
+		if w <= 0:
+			return "YOUR SHIP: no solar wings. A wing widens the radio beam and adds reserve power."
+		return "YOUR SHIP BOUGHT YOU: radio beam %.2f wide (%.2f with no wing), +%d reserve power (already in POWER LEFT) from %d solar wing%s" % [float(perks["beam"]), 0.26, int(PlayerData.WING_RESERVE * w), w, "" if w == 1 else "s"]
+	return ""
 
 
 func _refresh_prompt() -> void:
 	var pad := _near_pad()
 	var who := String(run.crew[_sel]["name"])
+	var en := int(float(run.crew[_sel]["energy"]))
 	if _busy:
 		_prompt_title.text = "WORKING..."
 		_prompt_body.text = ""
+		_prompt_travel.text = ""
 		_prompt_cost.text = ""
+		_prompt_perks.text = ""
 		_prompt_status.text = ""
 		return
-	if pad.is_empty():
-		_prompt_title.text = "%s IS STEERING" % who.to_upper()
-		_prompt_body.text = "Walk to a pad with A / D or the arrow keys, or click one. Stand on it and press E."
-		_prompt_cost.text = "WALKING COSTS TIME AND ENERGY"
-		_prompt_status.text = _msg if _msg_t > 0.0 else ""
+	# Where is the steered crew member headed? A pad that is being walked to now, else the last pad picked (only while
+	# they are not standing on some other pad, whose job is then the one on offer).
+	var aim: Dictionary = {}
+	if _target_x >= 0.0:
+		for k in _pads.size():
+			if absf(float(_pads[k]["x"]) - _target_x) < 1.0:
+				aim = _pads[k]
+				_aim_pad = k
+	elif pad.is_empty() and _aim_pad >= 0 and _aim_pad < _pads.size():
+		aim = _pads[_aim_pad]
+	if pad.is_empty() or (not aim.is_empty() and _target_x >= 0.0 and absf(_x(_sel) - float(aim["x"])) > NEAR):
+		# Out of range: say where we are headed and what getting there costs
+		if aim.is_empty():
+			_prompt_title.text = "%s IS STEERING" % who.to_upper()
+			_prompt_body.text = "Pick a room pad below. Click it to walk there, then press E (or click it again) to do the job. A / D and the arrows walk too."
+			_prompt_travel.text = "WALKING COSTS TIME AND ENERGY.   %s HAS %d ENERGY" % [who.to_upper(), en]
+			_prompt_cost.text = ""
+			_prompt_perks.text = ""
+		else:
+			var rname := String(ShipData.room(aim["room"])["name"])
+			var tk: Dictionary = _task_of(aim)
+			var tc := travel_cost_to(_aim_pad)
+			var walking := _target_x >= 0.0
+			_prompt_title.text = ("WALKING TO " if walking else "WALK TO ") + rname.to_upper()
+			_prompt_body.text = ("Then: %s. %s" % [String(tk["label"]).capitalize(), String(tk["desc"])]) if not tk.is_empty() else "Nothing to do in this room for this contract."
+			_prompt_travel.text = "TRAVEL   ~%.1f MIN   ~%.1f ENERGY   (%s HAS %d)" % [float(tc["time"]), float(tc["energy"]), who.to_upper(), en]
+			_prompt_cost.text = _task_cost_text(tk) if not tk.is_empty() else ""
+			_prompt_perks.text = perks_line(tk) if not tk.is_empty() else ""
+		_prompt_status.text = _msg if _msg_t > 0.0 else ("Walking...  press E or click the pad again when you arrive." if _aim_pad >= 0 and _target_x >= 0.0 else "")
 		_prompt_status.add_theme_color_override("font_color", UiStyle.AMBER)
 		return
 	var room: Dictionary = ShipData.room(pad["room"])
-	var task: Dictionary = pad["task"]
+	var task: Dictionary = _task_of(pad)
 	if task.is_empty():
 		_prompt_title.text = String(room["name"]).to_upper()
 		_prompt_body.text = "Nothing to do here in this contract. Later contracts use this room."
+		_prompt_travel.text = ""
 		_prompt_cost.text = ""
+		_prompt_perks.text = ""
 		_prompt_status.text = _msg if _msg_t > 0.0 else ""
 		return
 	_prompt_title.text = "%s   -   %s" % [String(room["name"]).to_upper(), task["label"]]
 	_prompt_body.text = String(task["desc"])
+	_prompt_travel.text = "TRAVEL   you are here   (%s HAS %d ENERGY)" % [who.to_upper(), en]
+	_prompt_cost.text = _task_cost_text(task)
+	_prompt_perks.text = perks_line(task)
+	var why := check_task(task)
+	if _msg_t > 0.0:
+		_prompt_status.text = _msg
+		_prompt_status.add_theme_color_override("font_color", UiStyle.AMBER)
+	elif why == "":
+		_prompt_status.text = "READY. Press E, or click the pad again."
+		_prompt_status.add_theme_color_override("font_color", UiStyle.PHOSPHOR)
+	else:
+		_prompt_status.text = why
+		_prompt_status.add_theme_color_override("font_color", UiStyle.CORAL)
+
+
+func _task_cost_text(task: Dictionary) -> String:
 	var e := float(task["energy"])
 	var bits: Array[String] = []
 	bits.append(("%d MIN" % int(round(_time_of(task)))) if String(task["kind"]) != "plan" else "WAIT FOR THE SUN")
 	if float(task["power"]) > 0.0:
 		bits.append("%d POWER" % int(task["power"]))
 	bits.append(("%d ENERGY" % int(e)) if e > 0.0 else ("WINS BACK %d ENERGY" % int(-e)) if e < 0.0 else "NO ENERGY")
-	_prompt_cost.text = "COSTS   " + "   ".join(bits)
-	var why := check_task(task)
-	if _msg_t > 0.0:
-		_prompt_status.text = _msg
-		_prompt_status.add_theme_color_override("font_color", UiStyle.AMBER)
-	elif why == "":
-		_prompt_status.text = "READY. Press E."
-		_prompt_status.add_theme_color_override("font_color", UiStyle.PHOSPHOR)
-	else:
-		_prompt_status.text = why
-		_prompt_status.add_theme_color_override("font_color", UiStyle.CORAL)
+	return "TASK     " + "   ".join(bits)

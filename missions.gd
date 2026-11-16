@@ -14,8 +14,10 @@ const LIST: Array[Dictionary] = [
 		"tag": "CONTRACT 01",
 		"diagram": "orientale",
 		"name": "ORIENTALE",
-		"objective": "Photograph the Orientale basin with a wide shot and a close-up. Tag which picture shows WHERE it is and which shows WHAT THE SURFACE IS LIKE, then send them home.",
-		"evidence": ["WIDE IMAGE", "DETAIL TILE", "TAGGED CORRECTLY"],
+		"objective": "Photograph the Orientale basin, tag which picture shows WHERE it is and which shows WHAT THE SURFACE IS LIKE, and send them home. Both shots are needed if your ship carries both lenses; a one-lens ship needs its one shot. A shot counts when it is tagged the right way round, rated MODERATE or better, and received on Earth.",
+		"card": "Photograph the Orientale basin with a wide shot and a close-up. Tag them, then send them home.",
+		"short": "Photograph the basin, tag WHERE and WHAT IT IS LIKE, and send the shots home. A shot counts when tagged right, MODERATE or better, and received.",
+		"evidence": ["WIDE IMAGE", "DETAIL TILE", "TAGGED"],
 		"available": true,
 		## What the ship must have, beyond the basics. lens: "any" or "both". lab: a Science Lab is required.
 		"needs": {"lens": "any", "lab": false},
@@ -60,13 +62,15 @@ const LIST: Array[Dictionary] = [
 		"tag": "CONTRACT 03",
 		"diagram": "impact_watch",
 		"name": "IMPACT WATCH",
-		"objective": "Log sightings on a private timestamped grid, then compare logs. A sighting stays tentative until it is corroborated.",
-		"evidence": ["TIMESTAMPED LOG", "LOG COMPARISON"],
-		"available": false,
+		"objective": "Watch the far side through your windows and log what you see. Send what you can within the packet budget. Then review it as Mission Control: a sighting is only supported when independent sources agree.",
+		"card": "Log sightings from your windows. Send what fits. Then review as Mission Control.",
+		"short": "Log sightings, send what fits, review as Mission Control.",
+		"evidence": ["SIGHTING LOG", "REVIEW"],
+		"available": true,
 		"needs": {"lens": "any", "lab": false},
 		"target": {"name": "Impact Watch", "desc": "dark region", "noun": "region"},
 		"budget": {"time": 50.0, "power": 22.0},
-		"objectives": [{"id": "log", "label": "Log what you see"}],
+		"objectives": [{"id": "log", "label": "Log what you see"}, {"id": "send", "label": "Send within the packets"}, {"id": "review", "label": "Review as Mission Control"}],
 	},
 ]
 
@@ -100,6 +104,22 @@ static func later_needs(id: int, s: BuildState) -> Array[Dictionary]:
 		if String(needs.get("lens", "any")) == "both":
 			out.append({"text": "Contract %02d needs both lenses" % (int(m["id"]) + 1), "ok": s != null and s.wide and s.close})
 	return out
+
+
+## Is this ship ready for contract id, and exactly what is missing or over a limit? Built from the same checks the Build
+## screen shows (BuildState.checks) plus what the contract itself asks for. Each issue is {text, key, fix}; key goes to the
+## Build screen's inspect action. A not-ready ship may still fly where the campaign rules allow it.
+static func readiness(id: int, s: BuildState) -> Dictionary:
+	var issues: Array[Dictionary] = []
+	for c in s.checks():
+		if not c["ok"]:
+			issues.append({"text": "%s: %s" % [String(c["label"]), String(c["why"])], "key": String(c["key"]), "fix": String(c["fix"])})
+	var needs: Dictionary = get_mission(id).get("needs", {})
+	if bool(needs.get("lab", false)) and not s.has_room("science-lab"):
+		issues.append({"text": "Science Lab: missing", "key": "room:science-lab", "fix": "Add Science Lab"})
+	if String(needs.get("lens", "any")) == "both" and not (s.wide and s.close):
+		issues.append({"text": "Both lenses: missing", "key": "lens", "fix": "Pack both lenses"})
+	return {"ready": issues.is_empty(), "issues": issues, "name": String(get_mission(id)["name"])}
 
 
 ## The contract with this id (the list index). Out-of-range ids give the first contract.

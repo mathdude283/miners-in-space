@@ -144,8 +144,8 @@ func _seat_card(i: int) -> Control:
 	var trait_label := Label.new()
 	trait_label.text = String(role["trait"])
 	trait_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	trait_label.custom_minimum_size = Vector2(0, 46)
-	trait_label.add_theme_font_size_override("font_size", 16)
+	trait_label.custom_minimum_size = Vector2(0, 72)
+	trait_label.add_theme_font_size_override("font_size", 20)
 	trait_label.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.85))
 	v.add_child(trait_label)
 	# Clicking the portrait picks the seat (the name field picks it too when it gets focus)
@@ -172,10 +172,10 @@ func _roster_card(id: String) -> Control:
 	pic.custom_minimum_size = Vector2(0, 118)
 	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(pic)
-	var l := UiStyle.mono_label(CrewData.char_name(id).to_upper(), 15, UiStyle.NEAR_WHITE)
+	var l := UiStyle.mono_label(CrewData.char_name(id).to_upper(), 17, UiStyle.NEAR_WHITE)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(l)
-	var tag := UiStyle.mono_label("", 12, UiStyle.PHOSPHOR)
+	var tag := UiStyle.mono_label("", 15, UiStyle.PHOSPHOR)
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(tag)
 	var b := Button.new()
@@ -258,6 +258,7 @@ func _on_continue() -> void:
 		crew.append(CrewData.make(String(_slots[i]["char"]), nm, role))
 	PlayerData.crew = crew
 	PlayerData.campaign["crew_chosen"] = true
+	PlayerData.autosave()
 	_leave(next_scene)
 
 

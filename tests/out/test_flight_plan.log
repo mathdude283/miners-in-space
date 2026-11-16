@@ -1,0 +1,18 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  good ship: no failing stage
+  flyby: { "name": "RADIO", "ok": false, "kind": "radio", "why": "No radio. The data could not be sent home.", "fix": "Add a Communications room." }
+PASS  flyby fails at RADIO
+  evidence: { "name": "CLIMB", "ok": false, "kind": "power", "why": "Not enough power: 9 used and 6 made. Systems shut down during the climb.", "fix": "Add a solar wing, or take out a room that uses power." }
+PASS  no wing fails at CLIMB (power)
+  heavy totals: 20 mass, cost 47
+PASS  overweight or over budget stops LIFTOFF
+PASS  no flight deck fails CLIMB (control)
+PASS  no life support fails ORBIT
+PASS  no observation bay fails PHOTO
+PASS  no lens fails PHOTO
+PASS  no radio fails RADIO
+PASS  no crew kit (no food etc) fails ORBIT
+PASS  empty ship: first failure is the earliest stage it breaks
+FAILS: 0

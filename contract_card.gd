@@ -53,7 +53,7 @@ func setup(data: Dictionary, group: ButtonGroup) -> void:
 	button_group = group
 	title_label.text = data["name"]
 	tag_label.text = data["tag"]
-	body_label.text = data["objective"]
+	body_label.text = String(data.get("card", data["objective"]))
 	diagram.kind = String(data.get("diagram", "orientale"))
 	tooltip_text = "" if _available else String(st.get("reason", "Not built yet in this version."))
 	for item in data["evidence"]:

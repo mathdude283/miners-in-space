@@ -1,0 +1,52 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  a clean entry peaks at the planned 3.9 g
+PASS  a bad angle makes the entry harder
+PASS  chutes on time give about 20 mph
+PASS  no main parachutes is a very hard landing
+PASS  a late main is harder than an on-time one
+PASS  a soft landing does no damage and a hard one does
+PASS  time over the g limit costs health
+PASS  both shots in the first session skips the fault
+PASS  a ship with no close-up lens has no fault
+PASS  the camera fault card opens
+PASS  the card lists three routes
+PASS  the card names the mission minutes, power and the crew member's energy
+PASS  the solar wing benefit is counted once
+PASS  the close-up cost on the card is read from the task rules
+PASS  the send cost on the card includes the task cost
+PASS  diagnose uses less power than divert
+PASS  divert saves the walk time
+PASS  the card shows walking in its estimates
+PASS  crew advice comes from each seat
+PASS  advice uses the names the player chose
+PASS  the scientist explains what the close-up adds
+PASS  the commander gives the time and power left
+PASS  the pilot talks about steadiness
+PASS  mission time is paused while the card is open
+PASS  with little power left the divert route is unavailable and says why
+PASS  unavailable routes carry their reason on the card
+PASS  diagnose: the card closes and the Flight Deck is next
+PASS  the next instruction is concrete
+PASS  the camera cannot be used yet
+PASS  the Flight Deck has a useful job now
+PASS  diagnosing charges time, power and energy once
+PASS  then the camera is back and the Observation Bay is next
+PASS  the job cannot be repeated for a second charge
+PASS  switching crew does not charge again
+PASS  the close-up is allowed after the fix
+PASS  the summary names the call and the cost
+PASS  divert: the Observation Bay is next and offers RESTORE
+PASS  restoring costs the stated power and time
+PASS  then the close-up is next
+PASS  send first: Communications is next
+PASS  the camera cannot be used before sending
+PASS  with enough left a close-up retry stays available
+PASS  with too little power the retry is closed and says why
+PASS  the lost camera cannot take photos and says why
+PASS  nobody hurt: no medical hint
+PASS  someone hurt and a Medical Bay aboard: the pad is highlighted
+PASS  treatment mends the hurt crew member
+PASS  without a Medical Bay the crew panel says so
+FAILS: 0

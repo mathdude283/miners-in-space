@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  before T-6:00 a hold is free
+PASS  at T-6:00 a hold is free (the built-in hold)
+PASS  just after T-6:00 a hold is limited
+PASS  at T-3:10 a hold is limited
+PASS  at T-1:30 the limit has ended
+PASS  at T-0:33 a hold is still possible
+PASS  after the hand-over nothing can be held
+PASS  the lockout time is read from the count itself
+PASS  limited guidance says 3 minutes and recycle
+PASS  late guidance names T-0:33
+PASS  free guidance names T-6:00
+PASS  at T-4:30 the guidance is the limited-hold rule
+PASS  a hold past 3 minutes recycles the count to T-10:00
+PASS  the HUD clock shows T-10:00 as well
+PASS  the guidance is the free rule again
+PASS  at the T-0:33 call the guidance names the hand-over, not the T-6:00 rule
+PASS  the HUD clock reads T-0:33 as well
+PASS  the count ends in liftoff
+PASS  after the hand-over the guidance is the lockout rule
+PASS  the HUD clock ended on the same time as the panel
+PASS  the panel clock ended at liftoff
+FAILS: 0

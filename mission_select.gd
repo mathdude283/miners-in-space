@@ -69,11 +69,10 @@ func _unhandled_input(event: InputEvent) -> void:
 const FRAME := Vector2(1920, 1080)
 
 ## Y2K decoration pack from the team Drive: beside and behind the real UI, never clickable.
+## The floating ornaments (star, ringed planet, arrows) were taken off this page. The four corner ornaments belong to the
+## HUD frame and stay.
 func _add_decor() -> void:
-	var layer := Decor.frame_layer(self, safe)
-	Decor.add(layer, "decor_orbit_star_crest", Rect2(300, 28, 270, 270), {"alpha": 0.9, "bob": 5.0})
-	Decor.add(layer, "decor_orbital_glass_pearl", Rect2(1590, 112, 230, 230), {"alpha": 0.95, "bob": 8.0})
-	Decor.add(layer, "decor_triple_chevron_chrome", Rect2(1232, 925, 130, 130), {"alpha": 0.9, "pulse": 0.5})
+	pass
 
 
 func _fit_to_size() -> void:
@@ -135,6 +134,72 @@ func _on_accept_pressed() -> void:
 		_leave("res://build_screen.tscn")
 
 
+## Impact Watch is a two-person game: the second person opens the flyer's case file here, or the flyer opens the review that came back.
+func _open_case_dialog() -> void:
+	DirAccess.make_dir_recursive_absolute("user://impact_cases")
+	var dlg := FileDialog.new()
+	dlg.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	dlg.access = FileDialog.ACCESS_FILESYSTEM
+	dlg.use_native_dialog = false
+	dlg.filters = PackedStringArray(["*.json ; Impact Watch files"])
+	dlg.title = "Open an Impact Watch case or review file"
+	dlg.size = Vector2i(1100, 700)
+	dlg.current_dir = ProjectSettings.globalize_path("user://impact_cases")
+	dlg.file_selected.connect(open_case_file)
+	dlg.canceled.connect(dlg.queue_free)
+	add_child(dlg)
+	dlg.popup_centered()
+
+
+## Open a case file (to review it) or a review file (to see how it was judged, with the reveal). Public so a test can use it.
+func open_case_file(path: String) -> String:
+	var parsed = null
+	if FileAccess.file_exists(path) and FileAccess.open(path, FileAccess.READ) != null:
+		var f := FileAccess.open(path, FileAccess.READ)
+		if f.get_length() <= ImpactCase.MAX_BYTES:
+			parsed = JSON.parse_string(f.get_as_text())
+	var msg := ""
+	var c: ImpactControl = null
+	if parsed is Dictionary and (parsed as Dictionary).has("verdicts"):
+		var found := {}
+		var dir := DirAccess.open("user://impact_cases")
+		if dir != null:
+			for fn in dir.get_files():
+				var r := ImpactCase.load_case("user://impact_cases/" + fn)
+				if bool(r["ok"]) and String(r["case"]["case_id"]) == String(parsed.get("case_id", "")):
+					found = r["case"]
+		if found.is_empty():
+			msg = "This review is for a case that is not on this computer. Open it on the flyer's computer."
+		else:
+			var v := ImpactCase.validate_verdict_file(parsed, found)
+			if not bool(v["ok"]):
+				msg = String(v["error"])
+			else:
+				c = ImpactControl.new()
+				c.case = found
+				c.given_verdicts = parsed["verdicts"]
+	else:
+		var r := ImpactCase.load_case(path)
+		if not bool(r["ok"]):
+			msg = String(r["error"])
+		else:
+			c = ImpactControl.new()
+			c.case = r["case"]
+			c.standalone = true
+	if c != null:
+		var run := ImpactCase.load_run(String(c.case["case_id"]))
+		if not run.is_empty() and String(run.get("case_hash", "")) == ImpactCase.case_hash(c.case):
+			c.map = run.get("map", {})
+			c.budget = int(run.get("budget", 0))
+			c.sent_cost = int(run.get("sent_cost", 0))
+		c.finished.connect(func(_r): c.queue_free())
+		add_child(c)
+		return ""
+	hint.text = msg
+	hint.add_theme_color_override("font_color", UiStyle.CORAL)
+	return msg
+
+
 ## What the page says about the campaign, and a way to start over.
 func _add_campaign_ui() -> void:
 	var c := PlayerData.campaign
@@ -151,12 +216,12 @@ func _add_campaign_ui() -> void:
 	nb.theme_type_variation = &"OutlineButton"
 	nb.focus_mode = Control.FOCUS_NONE
 	nb.add_theme_font_size_override("font_size", 15)
-	nb.custom_minimum_size = Vector2(180, 44)
+	nb.custom_minimum_size = Vector2(160, 44)
 	nb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var armed := [false]
 	nb.pressed.connect(func():
 		if bool(PlayerData.campaign["over"]) or armed[0] or (not bool(PlayerData.campaign["locked"]) and PlayerData.campaign["done"].is_empty()):
-			PlayerData.new_campaign()
+			PlayerData.start_over()
 			get_tree().reload_current_scene()
 		else:
 			armed[0] = true
@@ -166,12 +231,23 @@ func _add_campaign_ui() -> void:
 				nb.text = "NEW CAMPAIGN"))
 	row.add_child(nb)
 	row.move_child(nb, 1)
+	var ob := Button.new()
+	ob.text = "OPEN A FILE"
+	ob.tooltip_text = "Open an Impact Watch case file to review it, or a review file that came back."
+	ob.theme_type_variation = &"OutlineButton"
+	ob.focus_mode = Control.FOCUS_NONE
+	ob.add_theme_font_size_override("font_size", 15)
+	ob.custom_minimum_size = Vector2(140, 44)
+	ob.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ob.pressed.connect(_open_case_dialog)
+	row.add_child(ob)
+	row.move_child(ob, 2)
 	var sb := Button.new()
 	sb.text = "SOUND AND SOURCES"
 	sb.theme_type_variation = &"OutlineButton"
 	sb.focus_mode = Control.FOCUS_NONE
 	sb.add_theme_font_size_override("font_size", 15)
-	sb.custom_minimum_size = Vector2(220, 44)
+	sb.custom_minimum_size = Vector2(210, 44)
 	sb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	sb.pressed.connect(func(): add_child(SourcesPanel.new()))
 	row.add_child(sb)
@@ -181,7 +257,7 @@ func _add_campaign_ui() -> void:
 	pb.theme_type_variation = &"OutlineButton"
 	pb.focus_mode = Control.FOCUS_NONE
 	pb.add_theme_font_size_override("font_size", 15)
-	pb.custom_minimum_size = Vector2(150, 44)
+	pb.custom_minimum_size = Vector2(130, 44)
 	pb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	pb.pressed.connect(func(): add_child(PracticeMenu.new()))
 	row.add_child(pb)

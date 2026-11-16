@@ -19,6 +19,15 @@ const WINDOW_LO := 0.06
 const WINDOW_HI := 0.25
 
 var mode := "maxq"
+## The first live attempt of each control starts with a short preview and waits for READY before any timed input.
+var preview := false
+## Controls already seen this session, so the preview shows once.
+static var _seen := {}
+var _ready_wait := false
+var _hold_on_at := -1.0
+var _holds: Array[Vector2] = []              # [start, end] of each hold, in control time
+var _first_over_at := -1.0
+var _press_th := -1.0
 var _t := 0.0
 var _held := false
 var _over := false
@@ -77,7 +86,17 @@ func _ready() -> void:
 	else:
 		_btn.pressed.connect(_press)
 	v.add_child(_btn)
+	if preview:
+		_ready_wait = true
+		_tip.text = _preview_text()
+		_btn.text = "READY   [SPACE]"
 	Sfx.play("stage")
+
+
+func _preview_text() -> String:
+	if mode == "maxq":
+		return "HOW THIS WORKS.  The bar is the air pressure on the rocket. When it crosses the white LIMIT line, HOLD SPACE to ease the throttle. Let go when it falls back. Hold too early and you only slow the ship. Press READY when you are set. (You can also try it in PRACTICE on Mission Select.)"
+	return "HOW THIS WORKS.  The boosters burn out and their thrust drops. Press SPACE ONCE while the bar is inside the green window. Too early and the boosters still push; too late and they are dead weight. Press READY when you are set. (You can also try it in PRACTICE on Mission Select.)"
 
 
 ## Pressure through max Q: rises, peaks, falls. 1.0 is the limit the structure is happy with.
@@ -93,6 +112,11 @@ func _thrust(t: float) -> float:
 func _unhandled_input(event: InputEvent) -> void:
 	if _finished or not (event is InputEventKey) or event.echo or event.keycode != KEY_SPACE:
 		return
+	if _ready_wait:
+		if event.pressed:
+			_start_timed()
+		get_viewport().set_input_as_handled()
+		return
 	if mode == "maxq":
 		_hold(event.pressed)
 	elif event.pressed:
@@ -100,16 +124,39 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
+func _start_timed() -> void:
+	if not _ready_wait:
+		return
+	_ready_wait = false
+	_t = 0.0
+	_btn.text = "HOLD TO EASE THE THROTTLE   [SPACE]" if mode == "maxq" else "SEPARATE   [SPACE]"
+	Sfx.play("go")
+
+
 func _hold(on: bool) -> void:
-	if not _finished:
-		_held = on
+	if _ready_wait:
+		if on:
+			_start_timed()
+		return
+	if _finished:
+		return
+	if on and not _held:
+		_hold_on_at = _t
+	elif not on and _held and _hold_on_at >= 0.0:
+		_holds.append(Vector2(_hold_on_at, _t))
+		_hold_on_at = -1.0
+	_held = on
 
 
 func _press() -> void:
+	if _ready_wait:
+		_start_timed()
+		return
 	if _finished or _pressed or mode != "sep":
 		return
 	_pressed = true
 	var th := _thrust(_t)
+	_press_th = th
 	if th >= WINDOW_LO and th <= WINDOW_HI:
 		_quality = 1.0
 		_text = "CLEAN SEPARATION. You pressed in the window."
@@ -128,6 +175,9 @@ func _press() -> void:
 func _process(delta: float) -> void:
 	if _finished:
 		return
+	if _ready_wait:
+		_gauge.queue_redraw()
+		return
 	_t += delta
 	if mode == "maxq":
 		var q := _q(_t)
@@ -135,6 +185,8 @@ func _process(delta: float) -> void:
 		_over = eff > 1.0
 		if _over:
 			_stress += delta
+			if _first_over_at < 0.0:
+				_first_over_at = _t
 		if _held and q < 0.75:
 			_slow += delta
 		level.emit(minf(eff, 1.3))
@@ -176,12 +228,46 @@ func _coach(q: float) -> String:
 	return "Past the peak. Stay released."
 
 
+## What to do differently, from the inputs the game recorded.
+func advice() -> String:
+	if mode == "maxq":
+		if _hold_on_at >= 0.0:
+			_holds.append(Vector2(_hold_on_at, _t))
+			_hold_on_at = -1.0
+		var held := 0.0
+		for h in _holds:
+			held += h.y - h.x
+		if _stress > 0.6 and _holds.is_empty():
+			return "You never held SPACE. The pressure was over the limit for %.1f s. Hold SPACE as soon as the bar passes the LIMIT line." % _stress
+		if _stress > 0.6 and _holds.size() > 0 and _first_over_at >= 0.0 and _holds[0].x - _first_over_at > 0.6:
+			return "You started holding %.1f s after the pressure passed the limit. Press SPACE sooner, when the bar reaches the line." % (_holds[0].x - _first_over_at)
+		if _stress > 0.6:
+			return "You held too briefly: the pressure was over the limit for %.1f s while you were off the key. Keep holding until the bar falls below the line." % _stress
+		if _slow > 0.6:
+			return "You held for %.1f s while the pressure was low, which only slows the ship. Let go as soon as the bar drops under the limit." % _slow
+		return "Well done: you held through the peak and let go at the right time."
+	if _press_th < 0.0:
+		return "You never pressed. The flight computer separated the boosters late. Press SPACE once the bar is in the green window."
+	if _press_th > WINDOW_HI:
+		return "You separated too early: the boosters were still pushing (thrust %d%%, the green window is %d to %d%%). Wait for the bar to drop into the green." % [int(_press_th * 100.0), int(WINDOW_LO * 100.0), int(WINDOW_HI * 100.0)]
+	if _press_th < WINDOW_LO:
+		return "You separated a little late: thrust had already dropped to %d%%. Press as the bar enters the green window." % int(_press_th * 100.0)
+	return "Clean: you pressed inside the green window."
+
+
 func _finish() -> void:
 	if _finished:
 		return
 	_finished = true
 	level.emit(0.0)
-	done.emit({"quality": _quality, "text": _text})
+	AscentControl._seen[mode] = true
+	var adv := advice()
+	_tip.text = "%s   %s" % [_text, adv]
+	_btn.hide()
+	var result := {"quality": _quality, "text": _text, "advice": adv}
+	# Give the player a moment to read what happened before the flight goes on
+	await get_tree().create_timer(2.8, true, false, true).timeout
+	done.emit(result)
 
 
 func _draw_gauge() -> void:

@@ -1,0 +1,28 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  no save yet
+PASS  saving works
+PASS  a save exists with a chosen crew
+PASS  the summary says how far you got
+PASS  a fresh start has nothing done
+PASS  loading works
+PASS  the finished contract is remembered (as a whole number)
+PASS  the ship is still locked
+PASS  the same rooms are in the same bays
+PASS  the same solar wings
+PASS  the crew names, roles and portraits come back
+PASS  a hurt crew member stays hurt
+PASS  contract 02 is the next one open
+PASS  tests never touch the real save
+PASS  campaign over and its reason survive
+PASS  erasing removes the save
+PASS  a damaged save is refused: 
+PASS  a damaged save is refused: not json
+PASS  a damaged save is refused: [1,2,3]
+PASS  a damaged save is refused: {"version": 99}
+PASS  a damaged save is refused: {"version": 1, "campaign
+PASS  a damaged save is refused: {"version": 1, "campaign
+PASS  a hand-edited save loads
+PASS  and its name is cleaned and shortened
+FAILS: 0

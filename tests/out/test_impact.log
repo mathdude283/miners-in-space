@@ -1,0 +1,64 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  the budget cannot send everything
+PASS  a justified path fits the smallest budget
+PASS  a solar wing raises the budget
+PASS  the export validates
+PASS  it holds only the delivered records
+PASS  three candidate sightings are found from the evidence alone
+PASS  two independent observations support A
+PASS  the weak real impact B can correctly stay unresolved
+PASS  the wide frame justifies calling C an artifact
+PASS  run 1 completes the review
+PASS  run 2 also fits the base budget
+PASS  a log and a crop from one window do not make A supported
+PASS  the note says records from one witness count once
+PASS  a weak report and its retelling are one source, so B cannot be supported
+PASS  C with only a tight crop cannot be supported
+PASS  careful verdicts on run 2 are justified
+PASS  calling C an artifact without the wide frame is not justified
+PASS  the two runs allow different justified conclusions
+PASS  a different downlink gives a different file
+PASS  an undelivered product's words are not in the file
+PASS  no truth, seed or scenario words are in the file
+PASS  record IDs are opaque and change with the salt
+PASS  the case ID is opaque
+PASS  the file name is random and neutral
+PASS  no thumbnails or images are carried
+PASS  the crew's own names show as observers
+PASS  a retelling whose original was not sent points at a neutral source group
+PASS  and that file still validates
+PASS  when both are sent the retelling points at the original record
+PASS  both records share one source group
+PASS  the silent log is outside the coverage of candidate A
+PASS  so it changes nothing about what A can support
+PASS  silence from an observer who WAS looking there does count (supported becomes possible)
+PASS  rejects: not a dictionary (This is not an Impact Watch case file.)
+PASS  rejects: wrong version (This case file is from a different version (needs schema 1).)
+PASS  rejects: answer key (This file carries a field (truth) that a reviewer file must not contain.)
+PASS  rejects: unknown top field (This file has an unexpected field (extra).)
+PASS  rejects: no records (The case has no delivered evidence to review.)
+PASS  rejects: bad case id (The case ID is missing or malformed.)
+PASS  rejects a duplicate record ID
+PASS  rejects a source reference that points nowhere
+PASS  rejects a malformed record ID
+PASS  rejects a hidden field on a record
+PASS  rejects over-long text
+PASS  rejects too many records
+PASS  a garbage file gives a readable error, not a crash (This is not an Impact Watch case file.)
+PASS  an oversized file is refused before reading
+PASS  a missing file is refused
+PASS  saving a valid case works and loads back
+PASS  saving an invalid case is refused
+PASS  the onboard run record can be found by the case ID
+PASS  and it, not the reviewer file, holds the map back to the products
+PASS  a verdict file binds to its case
+PASS  it will not open for another case
+PASS  or for a case that was changed
+PASS  the reveal has three sections
+PASS  what happened names the real impacts and the artifact
+PASS  what reached Earth lists the delivered products and the packets used
+PASS  run 2's lesson says a second independent window was missing
+PASS  run 1's lesson is different
+FAILS: 0

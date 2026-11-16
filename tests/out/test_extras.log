@@ -1,0 +1,35 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  music track loads: design
+PASS  music track loads: launch
+PASS  music track loads: cruise
+PASS  music track loads: orbit
+PASS  music track loads: event
+PASS  music track loads: landing
+PASS  playing a track remembers it
+PASS  volumes are saved
+PASS  a lower effects slider makes sounds quieter
+PASS  the old loudness comes back at 70%
+PASS  select has Sound and sources and Practice
+PASS  the music slider changes the music volume
+PASS  practice starts: basin
+PASS  practice returns to the menu: basin
+PASS  practice starts: crater_low
+PASS  practice returns to the menu: crater_low
+PASS  practice starts: crater_high
+PASS  practice returns to the menu: crater_high
+PASS  practice starts: radio
+PASS  practice returns to the menu: radio
+PASS  practice changes nothing in the campaign
+PASS  the saved text names the contract and the evidence
+PASS  the saved text carries the finding and who was hurt and why
+PASS  the saved text says confidence is a game score
+PASS  the report is saved to a file
+PASS  the screen says where it saved it
+PASS  a heart-loss notice shows with an X
+PASS  the X closes the notice
+PASS  a death pop-up shows
+PASS  the pop-up has an X
+PASS  the X on the pop-up closes it
+FAILS: 0

@@ -6,12 +6,16 @@ extends Control
 signal closed
 
 const REAL := [
-	["Glushko", "A young crater on the west rim of Olbers, about 40 km across, with bright rays. USGS Gazetteer of Planetary Nomenclature, Moon, feature 2195."],
-	["Ohm", "A far-side crater about 62 km across with rays that reach hundreds of km. USGS Gazetteer, feature 4417."],
-	["Sun angle", "Low Sun casts sharp shadows that show texture. High Sun casts none, so brightness differences like rays stand out. LROC 'Sun Angles' (lroc.im-ldi.com/images/790)."],
-	["Launch day", "The Launch Director's poll, the NASA Test Director, the Ground Launch Sequencer, the terminal count and hold rules. NASA Artemis I and II launch pages (listed in the game's source notes)."],
-	["Weather", "Lightning, wind and temperature limits follow NASA's Artemis II weather criteria page."],
-	["Rooms", "Why a crew needs each room follows NASA pages on Orion, life support and the space station (named in the Build inspector)."],
+	["Glushko", "A young crater on the west rim of Olbers, about 40 km across, with bright rays. USGS Gazetteer of Planetary Nomenclature, Moon, feature 2195.", "https://planetarynames.wr.usgs.gov/Feature/2195"],
+	["Ohm", "A far-side crater about 62 km across with rays that reach hundreds of km. USGS Gazetteer, feature 4417.", "https://planetarynames.wr.usgs.gov/Feature/4417"],
+	["Sun angle", "Low Sun casts sharp shadows that show texture. High Sun casts none, so brightness differences like rays stand out. LROC 'Sun Angles'.", "https://lroc.im-ldi.com/images/790"],
+	["Countdown", "T-6:00 pyros armed, T-4:30 flight termination system armed, T-33 s go for the automated sequencer, and the hold rules (3 minutes between T-6:00 and T-1:30). NASA Artemis II Press Kit.", "https://www.nasa.gov/artemis-ii-press-kit/"],
+	["Blackout", "The Moon blocked radio for about 40 minutes (planned 6:44 to 7:25 p.m. EDT). NASA flight day 6 lunar flyby updates. The game's blackout is much shorter and is a GAME rule.", "https://www.nasa.gov/blogs/missions/2026/04/06/artemis-ii-flight-day-6-lunar-flyby-updates/"],
+	["NASA image", "The real far-side view in the report: annotated, credit NASA, from the flight day 6 blog. Your photos are SIMULATED.", "https://www.nasa.gov/blogs/missions/2026/04/06/artemis-ii-flight-day-6-lunar-flyby-updates/"],
+	["Launch day", "The Launch Director's poll, the NASA Test Director, the Ground Launch Sequencer and weather limits. NASA Artemis I and II launch pages (listed in the game's source notes).", "https://www.nasa.gov/artemis-ii-weather-criteria/"],
+	["Weather", "Lightning, wind and temperature limits follow NASA's Artemis II weather criteria page.", "https://www.nasa.gov/artemis-ii-weather-criteria/"],
+	["Return to Earth", "Crew module separation, the raise burn, entry at about 400,000 ft with up to 3.9 g, about six minutes of blackout, drogues near 22,000 ft, mains near 6,000 ft, splashdown at about 20 mph off San Diego, and recovery by the Navy. NASA Artemis II flight day 10 pages (April 2026).", "https://www.nasa.gov/blogs/missions/2026/04/10/artemis-ii-flight-day-10-re-entry-live-updates/"],
+	["Rooms", "Why a crew needs each room follows NASA pages on Orion, life support and the space station (named in the Build inspector).", ""],
 ]
 const GAME := "Weight, power, budget and time numbers, the three Sun passes and their waiting times, the comparability score, crew health, hearts and energy, random events, and the scoring are game rules. They are not NASA data."
 const AI := "Artwork and the crew were made with AI image generation from the team's Y2K direction. Sounds are synthesized in code. The six music pieces are original synthesized piano and strings, with no commercial samples. Code, text and tests were written with AI assistance (Claude Code and Codex). NASA does not endorse or sponsor this game."
@@ -54,7 +58,7 @@ func _ready() -> void:
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(list)
 	for r in REAL:
-		list.add_child(_row("REAL", String(r[0]), String(r[1]), UiStyle.PHOSPHOR))
+		list.add_child(_row("REAL", String(r[0]), String(r[1]), UiStyle.PHOSPHOR, String(r[2]) if r.size() > 2 else ""))
 	list.add_child(_row("GAME", "Numbers and rules", GAME, UiStyle.AMBER))
 	list.add_child(_row("AI", "How it was made", AI, UiStyle.CHROME))
 	var ok := Button.new()
@@ -104,19 +108,28 @@ func _slider(title: String, value: float, on_change: Callable) -> Control:
 	return row
 
 
-func _row(tag: String, title: String, text: String, color: Color) -> Control:
+func _row(tag: String, title: String, text: String, color: Color, url := "") -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
 	var t := UiStyle.mono_label(tag, 13, color)
 	t.custom_minimum_size = Vector2(60, 0)
 	t.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	row.add_child(t)
-	var l := Label.new()
-	l.text = "%s.  %s" % [title, text]
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.add_theme_font_size_override("font_size", 17)
-	l.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.92))
+	var l := VBoxContainer.new()
 	l.custom_minimum_size = Vector2(940, 0)
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var body := Label.new()
+	body.text = "%s.  %s" % [title, text]
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.add_theme_font_size_override("font_size", 17)
+	body.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.92))
+	body.custom_minimum_size = Vector2(940, 0)
+	l.add_child(body)
+	if url != "":
+		var lk := LinkButton.new()
+		lk.text = url
+		lk.uri = url
+		lk.add_theme_font_size_override("font_size", 13)
+		l.add_child(lk)
 	row.add_child(l)
 	return row

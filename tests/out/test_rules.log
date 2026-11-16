@@ -1,0 +1,22 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  new ship has 6 empty bays
+PASS  empty ship is not ready
+  flyby totals: 12 mass, 7/9 power, cost 32
+  flyby problems: ["Communications"]
+PASS  flyby is missing comms (teaches the trade-off)
+  evidence totals: 15 mass, 9/6 power, cost 37
+PASS  lunar evidence starter is NOT ready: it lacks power
+PASS  evidence starter is within weight and budget
+PASS  place flight deck
+PASS  same room twice is refused
+PASS  place into chosen empty bay
+PASS  undo removes the last room
+PASS  only 6 of 12 rooms fit
+PASS  overbuilt ship is not ready
+  heavy ship: mass 23 power 11/12 cost 53
+PASS  heavy ship fails weight
+PASS  adding one solar wing makes the evidence starter ready
+PASS  auto-fix no longer exists
+FAILS: 0

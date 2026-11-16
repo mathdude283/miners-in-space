@@ -176,8 +176,8 @@ alignment = 1
 
 [node name="Footer" type="MarginContainer" parent="Safe/Column"]
 layout_mode = 2
-theme_override_constants/margin_left = 123
-theme_override_constants/margin_right = 123
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_right = 100
 
 [node name="Row" type="HBoxContainer" parent="Safe/Column/Footer"]
 layout_mode = 2

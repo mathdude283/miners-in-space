@@ -1,0 +1,12 @@
+SCRIPT ERROR: Compile Error: Identifier not found: Sfx
+   at: GDScript::reload (res://photo_game.gd:379)
+SCRIPT ERROR: Compile Error: Identifier not found: Sfx
+   at: GDScript::reload (res://downlink_game.gd:260)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+   at: GDScript::reload (res://tests/test_minigames.gd:0)
+ERROR: Failed to load script "res://tests/test_minigames.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+   at: _run (res://tests/test_minigames.gd:28)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/test_minigames.gd:28)

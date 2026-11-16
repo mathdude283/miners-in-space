@@ -42,6 +42,8 @@ var _meter_power: SegmentMeter
 var _meter_budget: SegmentMeter
 var _bays_label: Label
 var _ahead_label: Label
+var _ready_panels: Array = []                # one per contract: {box, title, list, note}
+var _lock_confirmed := false
 var _check_rows: VBoxContainer
 var _hover_part: Dictionary = {}
 var _inspect: Dictionary = {}              # the part picked to read about
@@ -78,7 +80,8 @@ func _ready() -> void:
 	undo_button.pressed.connect(func(): _undo())
 	clear_button.pressed.connect(_on_clear)
 	back_button.pressed.connect(func(): _leave(back_scene))
-	continue_button.pressed.connect(func(): _leave(next_scene))
+	continue_button.pressed.connect(_on_continue)
+	_build_ready_panels()
 	continue_button.resized.connect(func(): continue_button.pivot_offset = continue_button.size * 0.5)
 
 	_fit_to_size()
@@ -99,6 +102,143 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_cancel"):
 		_leave(back_scene)
 		get_viewport().set_input_as_handled()
+
+
+## Two panels under the ship: is it ready for Orientale, and is it ready for Contract 02? Each names the exact thing that is
+## missing or over a limit, and clicking it shows the part. The ship locks once the first contract is done, so the second
+## panel also says what that means.
+func _build_ready_panels() -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	ship.add_child(row)
+	row.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	row.offset_top = -142.0
+	row.offset_bottom = -6.0
+	row.offset_left = 8.0
+	row.offset_right = -8.0
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for cid in [0, 1]:
+		var p := PanelContainer.new()
+		p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		p.add_theme_stylebox_override("panel", UiStyle.panel(8, 0.88))
+		row.add_child(p)
+		var v := VBoxContainer.new()
+		v.add_theme_constant_override("separation", 2)
+		p.add_child(v)
+		var title := UiStyle.mono_label("", 14, UiStyle.NEAR_WHITE)
+		v.add_child(title)
+		var list := VBoxContainer.new()
+		list.add_theme_constant_override("separation", 0)
+		v.add_child(list)
+		var note := Label.new()
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		note.add_theme_font_size_override("font_size", 13)
+		note.add_theme_color_override("font_color", UiStyle.AMBER)
+		v.add_child(note)
+		_ready_panels.append({"id": cid, "title": title, "list": list, "note": note})
+
+
+func _refresh_ready() -> void:
+	for rp in _ready_panels:
+		var cid: int = rp["id"]
+		var r := Missions.readiness(cid, state)
+		var title: Label = rp["title"]
+		title.text = "READY FOR %s:  %s" % [String(r["name"]).to_upper(), "YES" if r["ready"] else "NOT YET"]
+		title.add_theme_color_override("font_color", UiStyle.PHOSPHOR if r["ready"] else UiStyle.AMBER)
+		var list: VBoxContainer = rp["list"]
+		for c in list.get_children():
+			c.queue_free()
+		var shown := 0
+		for it in r["issues"]:
+			if shown >= 2:
+				break
+			shown += 1
+			var b := Button.new()
+			b.text = "%s   [SHOW]" % String(it["text"])
+			b.flat = true
+			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			b.add_theme_font_size_override("font_size", 14)
+			b.add_theme_color_override("font_color", UiStyle.CORAL)
+			b.add_theme_color_override("font_hover_color", Color.WHITE)
+			b.tooltip_text = "Click to see the part. Fix: %s" % String(it["fix"])
+			b.focus_mode = Control.FOCUS_NONE
+			b.custom_minimum_size = Vector2(0, 22)
+			b.clip_text = true
+			var key := String(it["key"])
+			b.pressed.connect(func(): _on_fix(key))
+			list.add_child(b)
+		if r["issues"].size() > 2:
+			list.add_child(UiStyle.mono_label("+ %d more in the checklist" % (r["issues"].size() - 2), 12, Color(UiStyle.NEAR_WHITE, 0.6)))
+		var note: Label = rp["note"]
+		note.text = ""
+		if cid == 1 and not bool(r["ready"]) and PlayerData.scenario == 0 and not bool(PlayerData.campaign["locked"]):
+			note.text = "Finishing Orientale LOCKS this ship. Contract 02 could not be flown with it."
+		elif cid == 0 and not bool(r["ready"]):
+			note.text = "You may still fly. A bad ship can fail."
+
+
+## The first contract locks the ship for the rest of the game. If this ship cannot fly the next contract, say so before the
+## player commits, and let them knowingly go on.
+func _on_continue() -> void:
+	var next := Missions.readiness(1, state)
+	if PlayerData.scenario == 0 and not _lock_confirmed and not bool(next["ready"]) and state.is_ready():
+		_ask_lock(next)
+		return
+	_leave(next_scene)
+
+
+func _ask_lock(next: Dictionary) -> void:
+	var layer := Control.new()
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(layer)
+	var dim := ColorRect.new()
+	dim.color = Color(0.01, 0.02, 0.07, 0.8)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(center)
+	var p := PanelContainer.new()
+	p.custom_minimum_size = Vector2(900, 0)
+	p.add_theme_stylebox_override("panel", UiStyle.panel(26, 0.97))
+	center.add_child(p)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 12)
+	p.add_child(col)
+	col.add_child(UiStyle.mono_label("BEFORE YOU LAUNCH", 15, UiStyle.AMBER))
+	col.add_child(UiStyle.heading("THIS SHIP CANNOT FLY CONTRACT 02"))
+	var why: Array[String] = []
+	for it in next["issues"]:
+		why.append(String(it["text"]))
+	var l := Label.new()
+	l.text = "Missing for Contract 02: %s.\n\nWhen you finish Orientale your ship is locked for the rest of the game, so the campaign would end after Orientale. You can add what is missing now, or knowingly fly this ship." % ", ".join(why)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(840, 0)
+	l.add_theme_font_size_override("font_size", 21)
+	col.add_child(l)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	col.add_child(row)
+	var back := Button.new()
+	back.text = "GO BACK AND FIX IT"
+	back.theme_type_variation = &"PrimaryButton"
+	back.add_theme_font_size_override("font_size", 24)
+	back.custom_minimum_size = Vector2(0, 80)
+	back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	back.pressed.connect(func(): layer.queue_free())
+	row.add_child(back)
+	var go := Button.new()
+	go.text = "FLY THIS SHIP ANYWAY"
+	go.theme_type_variation = &"OutlineButton"
+	go.add_theme_font_size_override("font_size", 20)
+	go.custom_minimum_size = Vector2(0, 80)
+	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	go.pressed.connect(func():
+		_lock_confirmed = true
+		layer.queue_free()
+		_leave(next_scene))
+	row.add_child(go)
 
 
 ## Back, Undo, Clear and Continue must always be on screen. The footer is pulled out of the tall column and pinned under it,
@@ -161,7 +301,7 @@ func _build_mission_panel() -> void:
 	name_label.add_theme_font_size_override("font_size", 28)
 	box.add_child(name_label)
 	var obj := Label.new()
-	obj.text = m["objective"]
+	obj.text = String(m.get("short", m["objective"]))
 	obj.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	obj.add_theme_font_size_override("font_size", 18)
 	obj.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.92))
@@ -176,11 +316,7 @@ func _build_mission_panel() -> void:
 		flow.add_child(chip)
 	box.add_child(flow)
 	# The ship is locked after the first contract, so say now what later contracts will need
-	if idx == 0 and not Missions.later_needs(0, null).is_empty():
-		_ahead_label = Label.new()
-		_ahead_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_ahead_label.add_theme_font_size_override("font_size", 16)
-		box.add_child(_ahead_label)
+
 
 
 func _build_meters_panel() -> void:
@@ -450,6 +586,10 @@ func _on_fix(key: String) -> void:
 		else:
 			msg = "%s is missing. Try adding the %s." % [def["label"], room_name]
 			target = _room_cards[def["room"]]
+	elif key.begins_with("room:"):
+		var rid := key.substr(5)
+		msg = "Contract 02 needs the %s. Add it before you fly." % ShipData.room(rid)["name"]
+		target = _room_cards[rid]
 	elif key == "camera":
 		msg = "No window. The Observation Bay is the window."
 		target = _room_cards["observation"]
@@ -550,14 +690,7 @@ func _refresh() -> void:
 	_equip_cards["close"].set_state(state.close)
 
 	_bays_label.text = "BAYS  %d / %d USED" % [state.used_bays(), R["bays"]]
-	if _ahead_label != null:
-		var bits: Array[String] = []
-		var all_ok := true
-		for n in Missions.later_needs(0, state):
-			bits.append(("[X] " if n["ok"] else "[  ] ") + String(n["text"]))
-			all_ok = all_ok and bool(n["ok"])
-		_ahead_label.text = "PLAN AHEAD: this ship is locked for the whole game once this contract is done.\n" + "\n".join(bits)
-		_ahead_label.add_theme_color_override("font_color", UiStyle.PHOSPHOR if all_ok else UiStyle.AMBER)
+	_refresh_ready()
 	_refresh_preview()
 	_refresh_checks()
 

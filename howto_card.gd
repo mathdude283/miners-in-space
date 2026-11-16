@@ -15,13 +15,13 @@ func setup(title_text: String, rows: Array) -> void:
 	_card.add_theme_stylebox_override("panel", UiStyle.panel(16, 0.92))
 	add_child(_card)
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 8)
+	col.add_theme_constant_override("separation", 10)
 	_card.add_child(col)
 	col.add_child(UiStyle.mono_label(title_text, 14, UiStyle.PHOSPHOR))
 	for r in rows:
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 12)
-		var tag := UiStyle.mono_label(String(r[0]), 13, UiStyle.PHOSPHOR)
+		row.add_theme_constant_override("separation", 14)
+		var tag := UiStyle.mono_label(String(r[0]), 14, UiStyle.PHOSPHOR)
 		tag.custom_minimum_size = Vector2(104, 0)
 		tag.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		row.add_child(tag)
@@ -30,7 +30,7 @@ func setup(title_text: String, rows: Array) -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size = Vector2(280, 0)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		l.add_theme_font_size_override("font_size", 16)
+		l.add_theme_font_size_override("font_size", 18)
 		l.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.92))
 		row.add_child(l)
 		col.add_child(row)

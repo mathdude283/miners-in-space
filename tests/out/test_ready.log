@@ -1,0 +1,18 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+   preset totals: 9 used / 6 made
+PASS  the preset starts at 9 power used / 6 made
+PASS  so it is not ready for Orientale, and the power is named exactly
+PASS  it is not ready for Contract 02 either, and the Science Lab is named
+PASS  each issue has a key for the inspect action
+PASS  two readiness panels are shown
+PASS  they say READY FOR ORIENTALE and READY FOR GLUSHKO AND OHM
+PASS  the second panel warns the ship locks after Orientale
+PASS  the Science Lab issue can be inspected
+PASS  with a solar wing the preset is ready for Orientale
+PASS  the first panel says YES
+PASS  Continue explains the lock before launching
+   with lab: ["Weight: 19 / 18 - too heavy", "Power: 11 used / 9 made - not enough"]
+PASS  a one-lens window check still works
+FAILS: 0

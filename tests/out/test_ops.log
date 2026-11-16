@@ -1,0 +1,34 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  one pad per built room, in ship order
+PASS  no pad for a room that was not built
+PASS  pads run left to right
+PASS  three crew on deck
+PASS  photo is ready at the start
+PASS  sending is refused before there is a photo
+PASS  a tired crew member cannot take the photo
+PASS  someone else can
+PASS  not enough time is refused
+PASS  not enough power is refused
+PASS  sending is allowed once there is something to send
+PASS  sending is refused when everything has been sent
+PASS  standing on the observation pad finds it
+PASS  the Flight Deck now has a job (the camera diagnosis)
+PASS  with no fault the diagnosis says there is nothing to diagnose
+PASS  a pad with no job says so
+PASS  selecting a crew member changes who acts
+PASS  finish reports photos and what reached Earth
+PASS  finish says it was not a time-out
+PASS  a crew quarters gives a rest pad
+PASS  rest is refused when not tired
+PASS  rest is allowed when tired
+PASS  resting wins energy back (and 6 minutes of hunger costs a little)
+PASS  someone with no energy loses health
+PASS  the reason says exhausted (this ship has a Crew Quarters)
+PASS  with no food or rest on the ship the reason says starving
+PASS  a dead crew member is taken off the ship
+PASS  control moves to someone who is alive
+PASS  a dead crew member cannot be picked
+PASS  zero time ends operations with a time-out
+FAILS: 0

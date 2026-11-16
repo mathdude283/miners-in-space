@@ -11,6 +11,7 @@ const TRACKER := preload("res://stage_tracker.gd")
 @export_file("*.tscn") var next_scene: String = "res://mission_select.tscn"
 
 var _status: Label
+var _nasa_status: Label
 
 
 func _ready() -> void:
@@ -97,8 +98,15 @@ func _build(layer: Control) -> void:
 		chips.add_child(chip)
 	left.add_child(chips)
 	left.add_child(UiStyle.mono_label("WHAT CAME BACK", 14, UiStyle.PHOSPHOR))
-	var any := false
+	var any := run != null and not run.impact.is_empty()
+	if any:
+		for l in impact_lines(run):
+			left.add_child(_label(String(l), 16, Color(UiStyle.NEAR_WHITE, 0.92), 600.0))
 	for e in (run.evidence if run != null else []):
+		if bool(e.get("needed", false)):
+			any = true
+			left.add_child(_row_card(e))
+			continue
 		if not bool(e.get("received", false)):
 			continue
 		any = true
@@ -106,12 +114,18 @@ func _build(layer: Control) -> void:
 	if not any:
 		left.add_child(_label("Nothing reached Earth.", 18, UiStyle.CORAL))
 
+	_nasa_block(left, run)
+
 	# Middle: the finding and what happened
 	var mid := _panel(Vector2(770, 140), Vector2(560, 700))
 	mid.add_child(UiStyle.mono_label("THE FINDING", 14, UiStyle.PHOSPHOR))
 	var lines := finding_lines(run)
 	for l in lines:
 		mid.add_child(_label(String(l), 17, Color(UiStyle.NEAR_WHITE, 0.92), 520.0))
+	if run != null and not run.landing.is_empty():
+		mid.add_child(UiStyle.mono_label("THE WAY HOME", 14, UiStyle.PHOSPHOR))
+		for n in run.landing.get("notes", []):
+			mid.add_child(_label(String(n), 16, Color(UiStyle.NEAR_WHITE, 0.9), 520.0))
 	mid.add_child(UiStyle.mono_label("WHAT HAPPENED ON THE WAY", 14, UiStyle.PHOSPHOR))
 	var evs: Array = run.events if run != null else []
 	if evs.is_empty():
@@ -159,6 +173,101 @@ func _build(layer: Control) -> void:
 	go.focus_mode = Control.FOCUS_NONE
 	go.pressed.connect(func(): get_tree().change_scene_to_file(next_scene))
 	layer.add_child(go)
+
+
+## A needed shot with its four separate outcomes: captured, tagged, received, meets the contract criteria.
+## One real NASA observation beside the player's simulated evidence. Clearly labelled REAL and SIMULATED, with its credit and source.
+func _nasa_block(parent: VBoxContainer, run: MissionRun) -> void:
+	var cid := PlayerData.current_mission()
+	if cid > 1:
+		return
+	parent.add_child(UiStyle.mono_label("REAL NASA VIEW   (your photos above are SIMULATED)", 13, UiStyle.AMBER))
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 14)
+	parent.add_child(h)
+	var pic := TextureRect.new()
+	pic.texture = load("res://assets/nasa/orientale_crop.jpg" if cid == 0 else "res://assets/nasa/artemis2_farside_view.jpg")
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	pic.custom_minimum_size = Vector2(150, 150)
+	pic.clip_contents = true
+	h.add_child(pic)
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("separation", 4)
+	h.add_child(v)
+	v.add_child(_label("NASA's annotated view of the Moon's far side from the Artemis II flyby%s. Credit: NASA." % (" (Orientale area)" if cid == 0 else " (Ohm is labelled)"), 14, Color(UiStyle.NEAR_WHITE, 0.9), 400.0))
+	var lk := LinkButton.new()
+	lk.text = "Source: NASA flight day 6 blog"
+	lk.uri = NasaCompare.SOURCE_URL
+	lk.add_theme_font_size_override("font_size", 13)
+	v.add_child(lk)
+	_nasa_status = _label("", 14, UiStyle.PHOSPHOR, 400.0)
+	v.add_child(_nasa_status)
+	_refresh_nasa_status(run)
+	if cid == 0:
+		var b := Button.new()
+		b.text = "COMPARE: FIND THE BASIN"
+		b.theme_type_variation = &"OutlineButton"
+		b.add_theme_font_size_override("font_size", 16)
+		b.custom_minimum_size = Vector2(0, 44)
+		b.focus_mode = Control.FOCUS_NONE
+		b.pressed.connect(func(): _open_compare(run))
+		v.add_child(b)
+
+
+func _refresh_nasa_status(run: MissionRun) -> void:
+	if _nasa_status == null:
+		return
+	var c: Dictionary = run.nasa_compare if run != null else {}
+	_nasa_status.text = "" if c.is_empty() else "You found the dark interior: %s.  Bright rings: %s." % ["yes" if c.get("interior", false) else "no", "yes" if c.get("rings", false) else "no"]
+
+
+func _open_compare(run: MissionRun) -> void:
+	var nc := NasaCompare.new()
+	var wide := {}
+	for e in run.evidence:
+		if String(e.get("lens", "")) == "wide" and bool(e.get("captured", true)):
+			wide = e
+	nc.framing = float(wide.get("framing", -1.0)) if not wide.is_empty() else -1.0
+	nc.steady = float(wide.get("sharp", 0.0))
+	nc.light = float(wide.get("light", 0.0))
+	add_child(nc)
+	nc.finished.connect(func(r):
+		run.nasa_compare = r
+		_refresh_nasa_status(run))
+
+
+func _row_card(e: Dictionary) -> Control:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UiStyle.panel(10, 0.9))
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 14)
+	card.add_child(h)
+	var pic := TextureRect.new()
+	pic.texture = e.get("tex")
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	pic.custom_minimum_size = Vector2(170, 100)
+	pic.clip_contents = true
+	if e.get("tex") == null:
+		pic.modulate = Color(1, 1, 1, 0.0)
+	h.add_child(pic)
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("separation", 3)
+	h.add_child(v)
+	var meets := bool(e["meets"])
+	v.add_child(UiStyle.mono_label("%s   %s   %s" % [String(e["label"]), "SIMULATED PHOTO", ("*".repeat(int(e["stars"])) if int(e["stars"]) > 0 else "")], 14, UiStyle.NEAR_WHITE))
+	var st := EvidenceCheck.stage_text(e)
+	for kv in [["CAPTURED", st["captured"], bool(e["captured"])], ["TAGGED", st["tagged"], bool(e["tag_ok"])], ["RECEIVED", st["received"], bool(e["received"])], ["MEETS CRITERIA", st["meets"], meets]]:
+		var line := UiStyle.mono_label("%-15s %s" % [kv[0], kv[1]], 14, UiStyle.PHOSPHOR if kv[2] else UiStyle.CORAL)
+		v.add_child(line)
+	if bool(e["captured"]):
+		v.add_child(UiStyle.mono_label("FRAMED %d%%   STEADY %d%%   LIGHT %d%%" % [int(float(e["framing"]) * 100.0), int(float(e["sharp"]) * 100.0), int(float(e["light"]) * 100.0)], 12, Color(UiStyle.NEAR_WHITE, 0.7)))
+	for pr in e["problems"]:
+		v.add_child(_label(String(pr), 14, UiStyle.AMBER, 360.0))
+	return card
 
 
 func _evidence_card(e: Dictionary) -> Control:
@@ -226,9 +335,29 @@ static func evidence_title(e: Dictionary) -> String:
 	return "WIDE PHOTO" if e["lens"] == "wide" else "CLOSE-UP PHOTO"
 
 
+## Contract 03: what was sent, what Mission Control concluded, and whether each verdict was justified.
+static func impact_lines(run: MissionRun) -> Array[String]:
+	var out: Array[String] = []
+	var im: Dictionary = run.impact
+	out.append("%d of %d packets sent." % [int(im.get("sent_cost", 0)), int(im.get("budget", 0))])
+	if not bool(im.get("sent", false)):
+		out.append("Nothing reached Mission Control.")
+		return out
+	for r in im.get("eval", {}).get("results", []):
+		out.append("%s: you said '%s'. %s (credit %d%%). %s" % [r["candidate"], String(ImpactReview.VERDICT_LABEL.get(r["verdict"], "nothing")), "Justified" if r["justified"] else "Not justified", int(r["credit"]), String(r["note"])])
+	var lesson := String(im.get("reveal", {}).get("lesson", ""))
+	if lesson != "":
+		out.append("Lesson: " + lesson)
+	return out
+
+
 static func finding_lines(run: MissionRun) -> Array[String]:
 	var out: Array[String] = []
 	if run == null:
+		return out
+	if not run.impact.is_empty():
+		out.append("Fictional simulation. The flashes, windows and packet costs are game data, and the rules are game rules, not NASA criteria.")
+		out.append("Review %s." % ("complete: every verdict justified" if bool(run.impact.get("complete", false)) else "NOT complete"))
 		return out
 	var sci: Dictionary = run.science
 	if bool(sci.get("crater", false)) and not sci.get("eval", {}).is_empty():
@@ -238,12 +367,23 @@ static func finding_lines(run: MissionRun) -> Array[String]:
 			out.append(String(l))
 		return out
 	var n := 0
+	var meets := 0
+	var total := 0
 	for e in run.evidence:
 		if bool(e.get("received", false)):
 			n += 1
+		if bool(e.get("needed", false)):
+			total += 1
+			if bool(e["meets"]):
+				meets += 1
 	out.append("%d photo%s reached Earth." % [n, "" if n == 1 else "s"])
+	if total > 0:
+		out.append("Contract criteria met for %d of %d needed shots. %s" % [meets, total, "The contract is complete." if meets == total else "The contract is NOT complete: see each shot."])
 	for e in run.evidence:
-		if bool(e.get("received", false)):
+		if bool(e.get("needed", false)):
+			var st := EvidenceCheck.stage_text(e)
+			out.append("%s: captured %s, tagged %s, %s, meets criteria %s." % [String(e["label"]), st["captured"].to_lower(), st["tagged"].to_lower(), st["received"].to_lower(), st["meets"].to_lower()])
+		elif bool(e.get("received", false)):
 			out.append("%s: %s, tagged %s." % [evidence_title(e).capitalize(), String(e["confidence"]).to_lower(), "correctly" if e.get("tag_ok", false) else "the wrong way round"])
 	return out
 
@@ -260,9 +400,19 @@ static func build_text(run: MissionRun, m: Dictionary) -> String:
 	t.append("")
 	t.append("## What came back")
 	var any := false
+	if run != null and not run.impact.is_empty():
+		any = true
+		for l in impact_lines(run):
+			t.append("- " + l)
 	if run != null:
 		for e in run.evidence:
-			if bool(e.get("received", false)):
+			if bool(e.get("needed", false)):
+				any = any or bool(e["received"])
+				var st := EvidenceCheck.stage_text(e)
+				t.append("- %s (simulated player photo): captured %s; tagged %s; %s; meets contract criteria %s. Framed %d%%, steady %d%%, light %d%%." % [String(e["label"]), st["captured"].to_lower(), st["tagged"].to_lower(), st["received"].to_lower(), st["meets"].to_lower(), int(float(e["framing"]) * 100.0), int(float(e["sharp"]) * 100.0), int(float(e["light"]) * 100.0)])
+				for pr in e["problems"]:
+					t.append("    * " + String(pr))
+			elif bool(e.get("received", false)):
 				any = true
 				t.append("- %s: %s confidence, %d stars. Reached Earth." % [evidence_title(e), String(e["confidence"]).to_lower(), int(e["stars"])])
 	if not any:
@@ -289,6 +439,20 @@ static func build_text(run: MissionRun, m: Dictionary) -> String:
 		t.append("")
 		t.append("Left at the end: %d minutes, %d power." % [int(run.left("time")), int(run.left("power"))])
 	t.append("")
+	t.append("## Real NASA reference")
+	t.append("- Real image: NASA's annotated far-side view from the Artemis II lunar flyby (Orientale Basin and Ohm are labelled). Credit: NASA. Source: https://www.nasa.gov/blogs/missions/2026/04/06/artemis-ii-flight-day-6-lunar-flyby-updates/")
+	if run != null and not run.nasa_compare.is_empty():
+		t.append("- Your comparison: dark basin interior found: %s; bright rings found: %s." % ["yes" if run.nasa_compare.get("interior", false) else "no", "yes" if run.nasa_compare.get("rings", false) else "no"])
+	t.append("- The photos above are SIMULATED by the game. They are not NASA imagery.")
+	t.append("")
+	t.append("## Sources")
+	t.append("- NASA Artemis II press kit (countdown, ascent, flyby, holds): https://www.nasa.gov/artemis-ii-press-kit/")
+	t.append("- NASA flight day 6 lunar flyby updates (blackout about 40 minutes, Orientale, Glushko): https://www.nasa.gov/blogs/missions/2026/04/06/artemis-ii-flight-day-6-lunar-flyby-updates/")
+	t.append("- NASA flight day 10 re-entry updates (the way home): https://www.nasa.gov/blogs/missions/2026/04/10/artemis-ii-flight-day-10-re-entry-live-updates/")
+	t.append("- USGS Gazetteer, Glushko: https://planetarynames.wr.usgs.gov/Feature/2195  and Ohm: https://planetarynames.wr.usgs.gov/Feature/4417")
+	t.append("- LROC Sun Angles: https://lroc.im-ldi.com/images/790")
+	t.append("")
+	t.append("Moonbound is a fictional educational mission inspired by Artemis II. NASA does not endorse it.")
 	t.append("Confidence, time, power and health are GAME scores and rules. They are not NASA measurements. Simulated views are not NASA imagery.")
 	return "\n".join(t)
 

@@ -1,0 +1,55 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.8724 - Compatibility - Using Device: Intel - Intel(R) Arc(TM) 140V GPU (16GB)
+
+PASS  three contracts
+PASS  get_mission clamps a bad id
+PASS  ORIENTALE has objectives, target, budget, needs
+PASS  GLUSHKO AND OHM has objectives, target, budget, needs
+PASS  IMPACT WATCH has objectives, target, budget, needs
+PASS  contract 02 has the re-observe / Ohm branch
+PASS  run starts with the contract's budget
+PASS  spend works
+PASS  overspend is refused and spends nothing
+PASS  restore stops at the maximum
+PASS  fraction
+PASS  unknown resource is zero and unspendable
+PASS  objectives start undone
+PASS  progress counts
+PASS  unknown objective is ignored
+PASS  all done
+PASS  choice is remembered
+PASS  event log
+PASS  hurt lowers health, tire clamps at zero
+PASS  run crew is a copy of the roster
+PASS  health cannot go below zero, role is no longer fit
+PASS  a hurt reports who, how much and why
+PASS  the short reason shows in how they are doing
+PASS  the last heart is a death with a cause
+PASS  the death signal says died
+PASS  the dead are listed with their cause
+PASS  the dead cannot be hurt again
+PASS  status for the dead says lost
+PASS  alive count drops
+PASS  hearts are health over twenty
+PASS  tired is said plainly
+PASS  kill_all returns who was lost
+PASS  crew summary shows LOST
+PASS  everything that hurt is in the log
+PASS  same seed gives the same random numbers
+PASS  name trims and strips markup
+PASS  empty name falls back
+PASS  long name is cut
+PASS  contract 01: the evidence ship flies
+PASS  contract 02 needs a science lab: PHOTO fails without one
+PASS  contract 02 passes the lab check with a lab
+PASS  default argument still works (older callers)
+PASS  bare ship: no bonuses
+PASS  flight deck steadies the camera, lab adds a try
+PASS  two wings (this ship) widen the beam
+PASS  one wing is the old radio beam
+PASS  two wings widen the beam
+PASS  a fit pilot steadies the camera a bit more
+PASS  a downed pilot does not
+PASS  perk summary mentions what is fitted
+PASS  perk summary suggests what would help
+FAILS: 0

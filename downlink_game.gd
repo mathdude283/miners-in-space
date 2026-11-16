@@ -13,7 +13,9 @@ extends Control
 signal finished(result: Dictionary)
 
 const WINDOW := 32.0
-const LOS_WINDOWS := [[9.0, 13.0], [21.0, 24.5]]      # real seconds in the game
+## One forecast blackout while the Moon is between the ship and Earth (game seconds). REAL: NASA planned about 40 minutes
+## without contact behind the Moon on flight day 6 (6:44 to 7:25 p.m. EDT). The timing here is a GAME compression.
+const LOS_WINDOWS := [[11.0, 17.0]]
 const PACKETS := {"wide": 8, "close": 10}
 const CENTER := Vector2(520, 560)
 const PULSE: Texture2D = preload("res://assets/ui/play/overlay_radio_signal_pulse.png")
@@ -57,6 +59,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var dim := ColorRect.new()
 	dim.color = Color(0.01, 0.02, 0.07, 0.97)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE      # a ColorRect stops the mouse by default, which froze the dish
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	for ph in photos:
@@ -87,6 +90,14 @@ func _name(key: String) -> String:
 	if ph.has("label"):
 		return String(ph["label"])
 	return "WIDE" if String(ph.get("lens", key)) == "wide" else "CLOSE-UP"
+
+
+## Seconds until contact returns, while the Moon blocks it.
+func _contact_returns_in() -> float:
+	for w in LOS_WINDOWS:
+		if _t >= w[0] and _t < w[1]:
+			return float(w[1]) - _t
+	return 0.0
 
 
 func _earth_angle() -> float:
@@ -132,7 +143,7 @@ func _show_brief() -> void:
 	for line in [
 		["1  AIM", "Move the mouse. The green beam points at the mouse. Put it on EARTH (the blue ball)."],
 		["2  KEEP IT THERE", "Earth drifts, so keep following it. While the beam is on Earth the bars fill. A photo only counts when its bar is full."],
-		["BLACKOUT", "Sometimes the Moon blocks the radio. Nothing sends until it clears. That is normal."],
+		["BLACKOUT", "One blackout is forecast. The Moon blocks the radio and nothing sends until contact returns. You can reorder the queue while it lasts."],
 		["YOUR SHIP", ShipData.perk_summary(perks, "radio")],
 	]:
 		var row := HBoxContainer.new()
@@ -214,6 +225,11 @@ func _build_hud() -> void:
 	_timer = UiStyle.mono_label("", 20, UiStyle.NEAR_WHITE)
 	_timer.position = Vector2(500, 106)
 	_panel.add_child(_timer)
+	var fc := UiStyle.mono_label("BLACKOUT FORECAST: the Moon blocks contact from %d s to %d s (silent for %d s). Contact returns at %d s. REAL: NASA planned about 40 minutes without contact behind the Moon. The game compresses it." % [int(LOS_WINDOWS[0][0]), int(LOS_WINDOWS[0][1]), int(LOS_WINDOWS[0][1] - LOS_WINDOWS[0][0]), int(LOS_WINDOWS[0][1])], 14, UiStyle.AMBER)
+	fc.position = Vector2(90, 918)
+	fc.size = Vector2(900, 60)
+	fc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_panel.add_child(fc)
 
 	var qp := PanelContainer.new()
 	qp.position = Vector2(1040, 150)
@@ -285,6 +301,22 @@ func _rebuild_queue() -> void:
 		bar.draw.connect(_draw_bar.bind(bar, lens))
 		v.add_child(bar)
 		_bars[lens] = bar
+		if _order.size() > 1 and _phase == "send":
+			# Reordering is the decision the blackout offers: nothing can be sent while the Moon blocks contact
+			var b := Button.new()
+			b.text = "SEND FIRST" if i > 0 else "FIRST"
+			b.disabled = i == 0 or not _los
+			b.tooltip_text = "You can reorder the queue during the blackout." if not _los else ""
+			b.theme_type_variation = &"OutlineButton"
+			b.add_theme_font_size_override("font_size", 15)
+			b.custom_minimum_size = Vector2(130, 44)
+			b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			b.focus_mode = Control.FOCUS_NONE
+			b.pressed.connect(func():
+				_order.erase(lens)
+				_order.insert(0, lens)
+				_rebuild_queue())
+			h.add_child(b)
 
 
 func _draw_bar(bar: Control, lens: String) -> void:
@@ -450,8 +482,10 @@ func _process(delta: float) -> void:
 				_t_fast += delta
 	if _los and not _was_los:
 		Sfx.play("static")
+		_rebuild_queue()
 	elif _was_los and not _los:
 		Sfx.play("lock", -3.0)
+		_rebuild_queue()
 	_was_los = _los
 	var total := 0
 	for lens in _order:
@@ -467,7 +501,7 @@ func _process(delta: float) -> void:
 		if _t >= w[0] - 3.0 and _t < w[0]:
 			next_los = true
 	if _los:
-		tip = "BLACKOUT. The Moon is in the way. Nothing sends for a few seconds. Keep the beam near Earth and wait."
+		tip = "BLACKOUT. Contact returns in %d s. Nothing sends now. Use the time to decide which photo goes first (SEND FIRST)." % int(ceil(_contact_returns_in()))
 	elif next_los:
 		tip = "The Moon is about to block the signal. Send as much as you can now."
 	elif not _ever_locked:

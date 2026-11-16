@@ -54,10 +54,8 @@ func _ready() -> void:
 	center.add_child(col)
 	col.add_child(UiStyle.mono_label("01  CONTRACT", 15, UiStyle.PHOSPHOR))
 	col.add_child(UiStyle.heading("CHOOSE YOUR CREW"))
-	var sub := Label.new()
-	sub.text = "Three seats, seven people. Pick a seat, click a face to put them in it, and give them any name you like."
-	sub.add_theme_font_size_override("font_size", 20)
-	sub.add_theme_color_override("font_color", Color(UiStyle.NEAR_WHITE, 0.9))
+	var sub := CoachPanel.new(1100.0, 19)
+	sub.say("Three seats, seven people. Pick a seat, click a face to put them in it, and give them any name you like. Each seat has a trait that matters in flight.")
 	col.add_child(sub)
 
 	var row := HBoxContainer.new()

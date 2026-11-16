@@ -114,7 +114,7 @@ func _line(tag: String, tag_color: Color) -> Array:
 
 
 func show_empty(text: String) -> void:
-	_thumb.texture = null
+	_thumb.texture = load("res://assets/ui/kit/moonbound01_lunar_radar.png")
 	_name.text = "PICK A PART"
 	_chips.text = ""
 	_source.text = ""

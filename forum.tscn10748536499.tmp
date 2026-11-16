@@ -1,0 +1,302 @@
+[gd_scene format=3 uid="uid://c4seiqdoyncsw"]
+
+[ext_resource type="Script" uid="uid://c3yv6s8uinx17" path="res://forum.gd" id="1_pcb8i"]
+[ext_resource type="ButtonGroup" uid="uid://dedulw5w7josb" path="res://assets/ButtonGroups/Q1Answers.tres" id="2_kplmg"]
+[ext_resource type="Theme" uid="uid://c58fket4g4c60" path="res://assets/themes/base_theme.tres" id="2_tavjp"]
+[ext_resource type="ButtonGroup" uid="uid://b5cfa5wrngmbl" path="res://assets/ButtonGroups/Q2Answers.tres" id="3_x3hvf"]
+[ext_resource type="ButtonGroup" uid="uid://bul1dl8pwefvm" path="res://assets/ButtonGroups/Q3Answers.tres" id="4_tavjp"]
+[ext_resource type="ButtonGroup" uid="uid://gh8ex45sc0ig" path="res://assets/ButtonGroups/Q4Answers.tres" id="5_334ht"]
+[ext_resource type="ButtonGroup" uid="uid://cohnf2ds2l2vb" path="res://assets/ButtonGroups/Q5Answers.tres" id="6_q5ox3"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_x3hvf"]
+
+[node name="Forum" type="Node2D" unique_id=47568375]
+script = ExtResource("1_pcb8i")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1874580041]
+
+[node name="UI" type="Control" parent="CanvasLayer" unique_id=1490340542]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_tavjp")
+
+[node name="Questions" type="MarginContainer" parent="CanvasLayer/UI" unique_id=421722413]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.472
+anchor_top = 0.079
+anchor_right = 0.506
+anchor_bottom = 0.742
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VerticalAlign" type="VBoxContainer" parent="CanvasLayer/UI/Questions" unique_id=2123099798]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="Q1Container" type="HBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign" unique_id=102355716]
+layout_mode = 2
+theme_override_constants/separation = 100
+
+[node name="Question1" type="Label" parent="CanvasLayer/UI/Questions/VerticalAlign/Q1Container" unique_id=228679030]
+layout_mode = 2
+text = "Question 1"
+label_settings = SubResource("LabelSettings_x3hvf")
+vertical_alignment = 3
+
+[node name="AnswerContainer" type="VBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign/Q1Container" unique_id=1619796240]
+layout_mode = 2
+
+[node name="answer1" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q1Container/AnswerContainer" unique_id=407070059]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("2_kplmg")
+text = "Choice 1"
+
+[node name="answer2" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q1Container/AnswerContainer" unique_id=952267844]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("2_kplmg")
+text = "Choice 2"
+
+[node name="answer3" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q1Container/AnswerContainer" unique_id=2042903314]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("2_kplmg")
+text = "Choice 3"
+
+[node name="answer4" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q1Container/AnswerContainer" unique_id=1307601603]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("2_kplmg")
+text = "Choice 4"
+
+[node name="Q2Container" type="HBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign" unique_id=1163295929]
+layout_mode = 2
+theme_override_constants/separation = 100
+
+[node name="Question2" type="Label" parent="CanvasLayer/UI/Questions/VerticalAlign/Q2Container" unique_id=273365818]
+layout_mode = 2
+text = "Question 2"
+
+[node name="AnswerContainer" type="VBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign/Q2Container" unique_id=1895570456]
+layout_mode = 2
+
+[node name="answer1" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q2Container/AnswerContainer" unique_id=2091767690]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("3_x3hvf")
+text = "Choice 1"
+
+[node name="answer2" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q2Container/AnswerContainer" unique_id=374960208]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("3_x3hvf")
+text = "Choice 2"
+
+[node name="answer3" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q2Container/AnswerContainer" unique_id=586483046]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("3_x3hvf")
+text = "Choice 3"
+
+[node name="answer4" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q2Container/AnswerContainer" unique_id=1655291855]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("3_x3hvf")
+text = "Choice 4"
+
+[node name="Q3Container" type="HBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign" unique_id=101505793]
+layout_mode = 2
+theme_override_constants/separation = 100
+
+[node name="Question3" type="Label" parent="CanvasLayer/UI/Questions/VerticalAlign/Q3Container" unique_id=1329371215]
+layout_mode = 2
+text = "Question 3"
+
+[node name="AnswerContainer" type="VBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign/Q3Container" unique_id=235250213]
+layout_mode = 2
+
+[node name="answer1" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q3Container/AnswerContainer" unique_id=1673019357]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("4_tavjp")
+text = "Choice 1"
+
+[node name="answer2" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q3Container/AnswerContainer" unique_id=2083399256]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("4_tavjp")
+text = "Choice 2"
+
+[node name="answer3" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q3Container/AnswerContainer" unique_id=1630285827]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("4_tavjp")
+text = "Choice 3"
+
+[node name="answer4" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q3Container/AnswerContainer" unique_id=1044409526]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("4_tavjp")
+text = "Choice 4"
+
+[node name="Q4Container" type="HBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign" unique_id=1289917861]
+layout_mode = 2
+theme_override_constants/separation = 100
+
+[node name="Question4" type="Label" parent="CanvasLayer/UI/Questions/VerticalAlign/Q4Container" unique_id=15485309]
+layout_mode = 2
+text = "Question 4"
+
+[node name="AnswerContainer" type="VBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign/Q4Container" unique_id=972740212]
+layout_mode = 2
+
+[node name="answer1" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q4Container/AnswerContainer" unique_id=1502968058]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("5_334ht")
+text = "Choice 1"
+
+[node name="answer2" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q4Container/AnswerContainer" unique_id=683895942]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("5_334ht")
+text = "Choice 2"
+
+[node name="answer3" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q4Container/AnswerContainer" unique_id=3461523]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("5_334ht")
+text = "Choice 3"
+
+[node name="answer4" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q4Container/AnswerContainer" unique_id=867164837]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("5_334ht")
+text = "Choice 4"
+
+[node name="Q5Container" type="HBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign" unique_id=1765776402]
+layout_mode = 2
+theme_override_constants/separation = 100
+
+[node name="Question5" type="Label" parent="CanvasLayer/UI/Questions/VerticalAlign/Q5Container" unique_id=308677776]
+layout_mode = 2
+text = "Question 5"
+
+[node name="AnswerContainer" type="VBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign/Q5Container" unique_id=1341211616]
+layout_mode = 2
+
+[node name="answer1" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q5Container/AnswerContainer" unique_id=1601597085]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("6_q5ox3")
+text = "Choice 1"
+
+[node name="answer2" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q5Container/AnswerContainer" unique_id=733736709]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("6_q5ox3")
+text = "Choice 2"
+
+[node name="answer3" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q5Container/AnswerContainer" unique_id=672205392]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("6_q5ox3")
+text = "Choice 3"
+
+[node name="answer4" type="CheckBox" parent="CanvasLayer/UI/Questions/VerticalAlign/Q5Container/AnswerContainer" unique_id=133896409]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+button_group = ExtResource("6_q5ox3")
+text = "Choice 4"
+
+[node name="QuestionButtons" type="MarginContainer" parent="CanvasLayer/UI/Questions/VerticalAlign" unique_id=32972411]
+layout_mode = 2
+
+[node name="Position" type="HBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons" unique_id=637593713]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Back" type="Button" parent="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position" unique_id=1887287968]
+layout_mode = 2
+text = "Back"
+
+[node name="Submit" type="Button" parent="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position" unique_id=1692037757]
+layout_mode = 2
+text = "Submit For Review"
+
+[node name="Evaluation" type="MarginContainer" parent="CanvasLayer/UI" unique_id=1331884171]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.427
+anchor_right = 0.427
+offset_right = 149.0
+offset_bottom = 31.0
+
+[node name="VerticalAlign" type="VBoxContainer" parent="CanvasLayer/UI/Evaluation" unique_id=409619396]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Question1" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=875959892]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question1" unique_id=1551203208]
+layout_mode = 2
+text = "Question 1 Result"
+
+[node name="Question2" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=1393314152]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question2" unique_id=218671252]
+layout_mode = 2
+text = "Question 2 Result"
+
+[node name="Question3" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=98217683]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question3" unique_id=706840564]
+layout_mode = 2
+text = "Question 3 Result"
+
+[node name="Question4" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=1019107612]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question4" unique_id=1169699407]
+layout_mode = 2
+text = "Question 4 Result"
+
+[node name="Question5" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=1675094092]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question5" unique_id=1139567221]
+layout_mode = 2
+text = "Question 5 Result"
+
+[node name="ReviewSummary" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=1321161134]
+layout_mode = 2
+text = "Review Summary"
+
+[node name="EvaluationButtons" type="MarginContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=343107577]
+layout_mode = 2
+offset_transform_enabled = true
+
+[node name="Position" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign/EvaluationButtons" unique_id=1843833498]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Retry" type="Button" parent="CanvasLayer/UI/Evaluation/VerticalAlign/EvaluationButtons/Position" unique_id=2080465124]
+layout_mode = 2
+text = "Retry"
+
+[node name="Continue" type="Button" parent="CanvasLayer/UI/Evaluation/VerticalAlign/EvaluationButtons/Position" unique_id=1334025330]
+layout_mode = 2
+text = "Continue"
+
+[connection signal="pressed" from="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position/Submit" to="." method="_on_submit_pressed"]

@@ -220,7 +220,7 @@ func start_review() -> void:
 
 func _on_back_pressed() -> void:
 	print("Back pressed!")
-	get_tree().change_scene_to_packed(PlayerData.mission_design_scene)
+	get_tree().change_scene_to_file(PlayerData.mission_design_scene)
 
 
 func _on_submit_pressed() -> void:

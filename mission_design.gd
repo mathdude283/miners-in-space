@@ -147,7 +147,7 @@ func _spaceship_type_back():
 		option_menu.back_button_pressed.disconnect(_spaceship_type_back)
 	if option_menu.selection_confirmed.is_connected(_spaceship_type_confirmed):
 		option_menu.selection_confirmed.disconnect(_spaceship_type_confirmed)
-	get_tree().change_scene_to_packed(PlayerData.main_menu_scene)
+	get_tree().change_scene_to_file(PlayerData.main_menu_scene)
 
 func _engine_type_confirmed(selection_id):
 	PlayerData.engine_type = selection_id
@@ -272,6 +272,8 @@ func _camera_type_confirmed(selection_id):
 		+ PlayerData.thermal_data[PlayerData.thermal_type]["name"] + ", " \
 		+ PlayerData.storage_data[PlayerData.storage_type]["name"] + ", and a " \
 		+ PlayerData.camera_data[PlayerData.camera_type]["name"] + "."
+	generate_path()
+	get_tree().change_scene_to_file(PlayerData.forum_scene)
 
 func _camera_type_back():
 	if option_menu.back_button_pressed.is_connected(_camera_type_back):
@@ -279,3 +281,6 @@ func _camera_type_back():
 	if option_menu.selection_confirmed.is_connected(_camera_type_confirmed):
 		option_menu.selection_confirmed.disconnect(_camera_type_confirmed)
 	setup_storage_cards()
+
+func generate_path():
+	pass

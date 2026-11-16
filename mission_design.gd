@@ -62,7 +62,76 @@ func setup_fuel_cards():
 	option_menu.back_button_pressed.connect(_fuel_amount_back)
 	option_menu.selection_confirmed.connect(_fuel_amount_confirmed)
 	option_menu.show()
-
+	
+func setup_power_cards():
+	option_menu.hide()
+	option_menu.clear_cards()
+	var placeholder = preload("res://assets/imgs/Placeholder.png")
+	var card_dicts = []
+	for id in PlayerData.power_data:
+		var p = PlayerData.power_data[id]
+		var text = "%s\nOutput: %s\nMass: %s kg\nCost: $%sM\n%s" % [
+			p["name"], p["output"], str(p["mass_kg"]), str(p["cost_m"]), p["notes"]
+		]
+		card_dicts.append({"id": id, "image": placeholder, "descr": text, "button_txt": "Select"})
+	option_menu.setup(card_dicts)
+	option_menu.back_button_pressed.connect(_power_type_back)
+	option_menu.selection_confirmed.connect(_power_type_confirmed)
+	option_menu.show()
+	
+func setup_thermal_cards():
+	option_menu.hide()
+	option_menu.clear_cards()
+	var placeholder = preload("res://assets/imgs/Placeholder.png")
+	var card_dicts = []
+	for id in PlayerData.thermal_data:
+		var t = PlayerData.thermal_data[id]
+		var text = "%s\nMass: %s kg\nPower: %s kW\nCost: $%sM\n%s" % [
+			t["name"], str(t["mass_kg"]), str(t["power_kw"]), str(t["cost_m"]), t["notes"]
+		]
+		card_dicts.append({"id": id, "image": placeholder, "descr": text, "button_txt": "Select"})
+	option_menu.setup(card_dicts)
+	option_menu.back_button_pressed.connect(_thermal_type_back)
+	option_menu.selection_confirmed.connect(_thermal_type_confirmed)
+	option_menu.show()
+	
+func setup_storage_cards():
+	option_menu.hide()
+	option_menu.clear_cards()
+	var placeholder = preload("res://assets/imgs/Placeholder.png")
+	var card_dicts = []
+	for id in PlayerData.storage_data:
+		var s = PlayerData.storage_data[id]
+		var text = "%s\nCapacity: %s TB\nMass: %s kg\nPower: %s kW\nCost: $%sM\n%s" % [
+			s["name"], str(s["capacity_tb"]), str(s["mass_kg"]), str(s["power_kw"]), str(s["cost_m"]), s["notes"]
+		]
+		card_dicts.append({"id": id, "image": placeholder, "descr": text, "button_txt": "Select"})
+	option_menu.setup(card_dicts)
+	option_menu.back_button_pressed.connect(_storage_type_back)
+	option_menu.selection_confirmed.connect(_storage_type_confirmed)
+	option_menu.show()
+	
+func setup_camera_cards():
+	option_menu.hide()
+	option_menu.clear_cards()
+	var placeholder = preload("res://assets/imgs/Placeholder.png")
+	var card_dicts = []
+	for id in PlayerData.camera_data:
+		var c = PlayerData.camera_data[id]
+		var text = "%s\nMass: %s kg\nPower: %s kW\nData: %s MB/%s\nCost: $%sM\n%s\nBest for: %s" % [
+			c["name"], str(c["mass_kg"]), str(c["power_kw"]), str(c["data_mb"]),
+			c["data_unit"], str(c["cost_m"]), c["notes"], c["missions"]
+		]
+		card_dicts.append({"id": id, "image": placeholder, "descr": text, "button_txt": "Select"})
+	option_menu.setup(card_dicts)
+	option_menu.back_button_pressed.connect(_camera_type_back)
+	option_menu.selection_confirmed.connect(_camera_type_confirmed)
+	option_menu.show()
+	
+	
+	
+	
+	
 func _spaceship_type_confirmed(selection_id):
 	PlayerData.ship_type = selection_id
 	if option_menu.back_button_pressed.is_connected(_spaceship_type_back):
@@ -109,7 +178,8 @@ func _fuel_amount_confirmed(selection_id):
 			PlayerData.MaxFuel.LARGE:
 				PlayerData.fuel_amount = 100
 		title.text = "You chose a " + PlayerData.ship_type_dict[str(PlayerData.ship_type)] + " ship, a " + PlayerData.engine_type_dict[str(PlayerData.engine_type)] + ", with " + str(PlayerData.fuel_amount) + " fuel."
-		
+		setup_power_cards()
+
 
 func _fuel_amount_back():
 	if option_menu.back_button_pressed.is_connected(_fuel_amount_back):
@@ -117,3 +187,93 @@ func _fuel_amount_back():
 	if option_menu.selection_confirmed.is_connected(_fuel_amount_confirmed):
 		option_menu.selection_confirmed.disconnect(_fuel_amount_confirmed)
 	setup_engine_cards()
+
+func _power_type_confirmed(selection_id):
+	PlayerData.power_type = selection_id
+	if option_menu.back_button_pressed.is_connected(_power_type_back):
+		option_menu.back_button_pressed.disconnect(_power_type_back)
+	if option_menu.selection_confirmed.is_connected(_power_type_confirmed):
+		option_menu.selection_confirmed.disconnect(_power_type_confirmed)
+	option_menu.hide()
+	option_menu.clear_cards()
+	title.text = "You chose a " + PlayerData.ship_type_dict[str(PlayerData.ship_type)] \
+		+ " ship, a " + PlayerData.engine_type_dict[str(PlayerData.engine_type)] \
+		+ ", with " + str(PlayerData.fuel_amount) + " fuel and " \
+		+ PlayerData.power_data[PlayerData.power_type]["name"] + "."
+	setup_thermal_cards()
+
+func _power_type_back():
+	if option_menu.back_button_pressed.is_connected(_power_type_back):
+		option_menu.back_button_pressed.disconnect(_power_type_back)
+	if option_menu.selection_confirmed.is_connected(_power_type_confirmed):
+		option_menu.selection_confirmed.disconnect(_power_type_confirmed)
+	setup_fuel_cards()
+	
+func _thermal_type_confirmed(selection_id):
+	PlayerData.thermal_type = selection_id
+	if option_menu.back_button_pressed.is_connected(_thermal_type_back):
+		option_menu.back_button_pressed.disconnect(_thermal_type_back)
+	if option_menu.selection_confirmed.is_connected(_thermal_type_confirmed):
+		option_menu.selection_confirmed.disconnect(_thermal_type_confirmed)
+	option_menu.hide()
+	option_menu.clear_cards()
+	title.text = "You chose a " + PlayerData.ship_type_dict[str(PlayerData.ship_type)] \
+		+ " ship, a " + PlayerData.engine_type_dict[str(PlayerData.engine_type)] \
+		+ ", with " + str(PlayerData.fuel_amount) + " fuel, " \
+		+ PlayerData.power_data[PlayerData.power_type]["name"] + ", and " \
+		+ PlayerData.thermal_data[PlayerData.thermal_type]["name"] + "."
+	setup_storage_cards()
+
+func _thermal_type_back():
+	if option_menu.back_button_pressed.is_connected(_thermal_type_back):
+		option_menu.back_button_pressed.disconnect(_thermal_type_back)
+	if option_menu.selection_confirmed.is_connected(_thermal_type_confirmed):
+		option_menu.selection_confirmed.disconnect(_thermal_type_confirmed)
+	setup_power_cards()
+	
+	
+func _storage_type_confirmed(selection_id):
+	PlayerData.storage_type = selection_id
+	if option_menu.back_button_pressed.is_connected(_storage_type_back):
+		option_menu.back_button_pressed.disconnect(_storage_type_back)
+	if option_menu.selection_confirmed.is_connected(_storage_type_confirmed):
+		option_menu.selection_confirmed.disconnect(_storage_type_confirmed)
+	option_menu.hide()
+	option_menu.clear_cards()
+	title.text = "You chose a " + PlayerData.ship_type_dict[str(PlayerData.ship_type)] \
+		+ " ship, a " + PlayerData.engine_type_dict[str(PlayerData.engine_type)] \
+		+ ", with " + str(PlayerData.fuel_amount) + " fuel, " \
+		+ PlayerData.power_data[PlayerData.power_type]["name"] + ", " \
+		+ PlayerData.thermal_data[PlayerData.thermal_type]["name"] + ", and " \
+		+ PlayerData.storage_data[PlayerData.storage_type]["name"] + "."
+	setup_camera_cards()
+	
+func _storage_type_back():
+	if option_menu.back_button_pressed.is_connected(_storage_type_back):
+		option_menu.back_button_pressed.disconnect(_storage_type_back)
+	if option_menu.selection_confirmed.is_connected(_storage_type_confirmed):
+		option_menu.selection_confirmed.disconnect(_storage_type_confirmed)
+	setup_thermal_cards()
+	
+func _camera_type_confirmed(selection_id):
+	PlayerData.camera_type = selection_id
+	if option_menu.back_button_pressed.is_connected(_camera_type_back):
+		option_menu.back_button_pressed.disconnect(_camera_type_back)
+	if option_menu.selection_confirmed.is_connected(_camera_type_confirmed):
+		option_menu.selection_confirmed.disconnect(_camera_type_confirmed)
+	option_menu.hide()
+	option_menu.clear_cards()
+	title.text = "You chose a " + PlayerData.ship_type_dict[str(PlayerData.ship_type)] \
+		+ " ship, a " + PlayerData.engine_type_dict[str(PlayerData.engine_type)] \
+		+ ", with " + str(PlayerData.fuel_amount) + " fuel, " \
+		+ PlayerData.power_data[PlayerData.power_type]["name"] + ", " \
+		+ PlayerData.thermal_data[PlayerData.thermal_type]["name"] + ", " \
+		+ PlayerData.storage_data[PlayerData.storage_type]["name"] + ", and a " \
+		+ PlayerData.camera_data[PlayerData.camera_type]["name"] + "."
+
+func _camera_type_back():
+	if option_menu.back_button_pressed.is_connected(_camera_type_back):
+		option_menu.back_button_pressed.disconnect(_camera_type_back)
+	if option_menu.selection_confirmed.is_connected(_camera_type_confirmed):
+		option_menu.selection_confirmed.disconnect(_camera_type_confirmed)
+	setup_storage_cards()

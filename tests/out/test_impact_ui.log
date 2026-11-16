@@ -19,15 +19,3 @@ PASS  sending nothing is refused
 PASS  a sensible set is delivered
 PASS  the file holds no truth
 PASS  and only the delivered records
-PASS  the budget stops a choice that does not fit
-PASS  sending delivers a validated case file
-PASS  the file loads back and validates
-PASS  Mission Control finds the three candidates
-PASS  the review cannot be locked before every candidate has a verdict
-PASS  with every verdict given the review can be locked
-PASS  a well-justified review is complete
-PASS  a review file was saved bound to the case
-PASS  the reveal is available because the run record is aboard
-PASS  calling everything supported on one witness each is not justified
-PASS  the same scenario with two sends gives different files
-FAILS: 0

@@ -110,7 +110,6 @@ func _fuel_amount_confirmed(selection_id):
 				PlayerData.fuel_amount = 100
 		title.text = "You chose a " + PlayerData.ship_type_dict[str(PlayerData.ship_type)] + " ship, a " + PlayerData.engine_type_dict[str(PlayerData.engine_type)] + ", with " + str(PlayerData.fuel_amount) + " fuel."
 		
-
 func _fuel_amount_back():
 	if option_menu.back_button_pressed.is_connected(_fuel_amount_back):
 		option_menu.back_button_pressed.disconnect(_fuel_amount_back)

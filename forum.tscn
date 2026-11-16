@@ -7,6 +7,8 @@
 [ext_resource type="ButtonGroup" uid="uid://gh8ex45sc0ig" path="res://assets/ButtonGroups/Q4Answers.tres" id="5_334ht"]
 [ext_resource type="ButtonGroup" uid="uid://cohnf2ds2l2vb" path="res://assets/ButtonGroups/Q5Answers.tres" id="6_q5ox3"]
 
+[sub_resource type="LabelSettings" id="LabelSettings_x3hvf"]
+
 [node name="Forum" type="Node2D" unique_id=47568375]
 script = ExtResource("1_pcb8i")
 
@@ -21,11 +23,12 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Questions" type="MarginContainer" parent="CanvasLayer/UI" unique_id=421722413]
+visible = false
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.124
+anchor_left = 0.472
 anchor_top = 0.079
-anchor_right = 0.213
+anchor_right = 0.506
 anchor_bottom = 0.742
 grow_horizontal = 2
 grow_vertical = 2
@@ -41,6 +44,8 @@ theme_override_constants/separation = 100
 [node name="Question1" type="Label" parent="CanvasLayer/UI/Questions/VerticalAlign/Q1Container" unique_id=228679030]
 layout_mode = 2
 text = "Question 1"
+label_settings = SubResource("LabelSettings_x3hvf")
+vertical_alignment = 3
 
 [node name="AnswerContainer" type="VBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign/Q1Container" unique_id=1619796240]
 layout_mode = 2
@@ -209,24 +214,87 @@ theme_override_constants/h_separation = 15
 button_group = ExtResource("6_q5ox3")
 text = "Choice 4"
 
-[node name="Buttons" type="MarginContainer" parent="CanvasLayer/UI" unique_id=32972411]
-layout_mode = 0
-offset_left = 885.3
-offset_top = 890.0
-offset_right = 1102.3
-offset_bottom = 921.0
+[node name="QuestionButtons" type="MarginContainer" parent="CanvasLayer/UI/Questions/VerticalAlign" unique_id=32972411]
+layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/UI/Buttons" unique_id=637593713]
+[node name="Position" type="HBoxContainer" parent="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons" unique_id=637593713]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Back" type="Button" parent="CanvasLayer/UI/Buttons/HBoxContainer" unique_id=1887287968]
+[node name="Back" type="Button" parent="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position" unique_id=1887287968]
 layout_mode = 2
 text = "Back"
 
-[node name="Submit" type="Button" parent="CanvasLayer/UI/Buttons/HBoxContainer" unique_id=1692037757]
+[node name="Submit" type="Button" parent="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position" unique_id=1692037757]
 layout_mode = 2
 text = "Submit For Review"
 
-[connection signal="pressed" from="CanvasLayer/UI/Buttons/HBoxContainer/Back" to="." method="_on_back_pressed"]
-[connection signal="pressed" from="CanvasLayer/UI/Buttons/HBoxContainer/Submit" to="." method="_on_submit_pressed"]
+[node name="Evaluation" type="MarginContainer" parent="CanvasLayer/UI" unique_id=1331884171]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.427
+anchor_right = 0.427
+offset_right = 149.0
+offset_bottom = 31.0
+
+[node name="VerticalAlign" type="VBoxContainer" parent="CanvasLayer/UI/Evaluation" unique_id=409619396]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Question1" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=875959892]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question1" unique_id=1551203208]
+layout_mode = 2
+text = "Question 1 Result"
+
+[node name="Question2" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=1393314152]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question2" unique_id=218671252]
+layout_mode = 2
+text = "Question 2 Result"
+
+[node name="Question3" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=98217683]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question3" unique_id=706840564]
+layout_mode = 2
+text = "Question 3 Result"
+
+[node name="Question4" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=1019107612]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question4" unique_id=1169699407]
+layout_mode = 2
+text = "Question 4 Result"
+
+[node name="Question5" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=1675094092]
+layout_mode = 2
+
+[node name="Result" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign/Question5" unique_id=1139567221]
+layout_mode = 2
+text = "Question 5 Result"
+
+[node name="ReviewSummary" type="Label" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=1321161134]
+layout_mode = 2
+text = "Review Summary"
+
+[node name="EvaluationButtons" type="MarginContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign" unique_id=343107577]
+layout_mode = 2
+offset_transform_enabled = true
+
+[node name="Position" type="HBoxContainer" parent="CanvasLayer/UI/Evaluation/VerticalAlign/EvaluationButtons" unique_id=1843833498]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Retry" type="Button" parent="CanvasLayer/UI/Evaluation/VerticalAlign/EvaluationButtons/Position" unique_id=2080465124]
+layout_mode = 2
+text = "Retry"
+
+[node name="Continue" type="Button" parent="CanvasLayer/UI/Evaluation/VerticalAlign/EvaluationButtons/Position" unique_id=1334025330]
+layout_mode = 2
+text = "Continue"
+
+[connection signal="pressed" from="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CanvasLayer/UI/Questions/VerticalAlign/QuestionButtons/Position/Submit" to="." method="_on_submit_pressed"]

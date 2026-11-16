@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://buiw4fiay1ert" path="res://flight.gd" id="1_72is4"]
 [ext_resource type="Texture2D" uid="uid://jpw4h44ny1qk" path="res://assets/imgs/MissionDesign/LocalOrbit.png" id="2_8b1em"]
-[ext_resource type="PackedScene" uid="uid://c6mmeom2fo8ra" path="res://background.tscn" id="3_65vbi"]
 
 [node name="Flight" type="Node2D" unique_id=1439421788]
 script = ExtResource("1_72is4")
@@ -16,5 +15,3 @@ texture = ExtResource("2_8b1em")
 [node name="RocketPath" type="Line2D" parent="." unique_id=803906040]
 
 [node name="Earth" type="Sprite2D" parent="." unique_id=947731968]
-
-[node name="Background" parent="." unique_id=342295904 instance=ExtResource("3_65vbi")]

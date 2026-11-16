@@ -9,6 +9,8 @@ extends Node2D
 func _ready() -> void:
 	var background = PlayerData.background.instantiate()
 	add_child(background)
+	PlayerData.center_pos = get_viewport_rect().size / 2
+	PlayerData.path_start = PlayerData.center_pos + Vector2(0, -1*PlayerData.EARTH_RADIUS_PIXELS)
 	start_button.show()
 	mission_select.hide()
 	mission_conf.hide()
@@ -60,4 +62,4 @@ func _on_back_button_pressed() -> void:
 
 
 func _on_accept_mission_button_pressed() -> void:
-	get_tree().change_scene_to_packed(PlayerData.mission_design_scene)
+	get_tree().change_scene_to_file(PlayerData.mission_design_scene)

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b1boi15b3h4ip"]
 
 [ext_resource type="Script" uid="uid://c7w3swqbjclr" path="res://mission_design.gd" id="1_qoiaj"]
+[ext_resource type="Script" uid="uid://deyvyc8iq3hxj" path="res://line_2d.gd" id="2_nt5pa"]
 
 [node name="MissionDesign" type="Node2D" unique_id=751122485]
 script = ExtResource("1_qoiaj")
@@ -32,3 +33,7 @@ layout_mode = 2
 text = "Mission Design"
 fit_content = true
 autowrap_mode = 0
+
+[node name="Line2D" type="Line2D" parent="." unique_id=371524996]
+visible = false
+script = ExtResource("2_nt5pa")

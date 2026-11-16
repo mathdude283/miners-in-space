@@ -31,6 +31,3 @@ func _draw():
 	draw_circle(Vector2(-0.3, -0.25) * EARTH_RADIUS_PIXELS, EARTH_RADIUS_PIXELS * 0.35, Color.FOREST_GREEN)
 	draw_circle(Vector2(0.35, 0.2) * EARTH_RADIUS_PIXELS, EARTH_RADIUS_PIXELS * 0.4, Color.FOREST_GREEN)
 	draw_circle(Vector2(-0.15, 0.5) * EARTH_RADIUS_PIXELS, EARTH_RADIUS_PIXELS * 0.22, Color.FOREST_GREEN)
-
-func _process(delta: float) -> void:
-	pass

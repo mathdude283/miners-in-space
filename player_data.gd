@@ -21,14 +21,34 @@ var ship_type = null
 var engine_type = null
 var scenario = null
 var mission_summaries = ["This is the mission 1 summary.", "This is the mission 2 summary.", "This is the mission 3 summary."]
-var main_menu_scene = preload("res://main_menu.tscn")
-var mission_design_scene = preload("res://mission_design.tscn")
-var forum_scene = preload("res://forum.tscn")
-var flight_scene = preload("res://flight.tscn")
-var end_scene = preload("res://end.tscn")
+var main_menu_scene = "res://main_menu.tscn"
+var mission_design_scene = "res://mission_design.tscn"
+var forum_scene = "res://forum.tscn"
+var flight_scene = "res://flight.tscn"
+var end_scene = "res://end.tscn"
 var background = preload("res://background.tscn")
 var ship_type_dict = {str(ShipType.LOCALORBIT): "Local Orbit", str(ShipType.LOCALLANDING): "Local Landing", str(ShipType.LONGORBIT): "Long Orbit", str(ShipType.LONGLANDING): "Long Landing"}
 var engine_type_dict = {str(EngineType.SOLIDSMALL): "Solid Small", str(EngineType.SOLIDMEDIUM): "Solid Medium", str(EngineType.SOLIDLARGE): "Solid LARGE", str(EngineType.LIQUIDSMALL): "Liquid Small", str(EngineType.LIQUIDMEDIUM): "Liquid Medium", str(EngineType.LIQUIDLARGE): "Liquid Large",}
+
+const G = 6.6743*(10.0**(-11.0)) # m^3/kg*s^2
+const M = 5.9722*(10**24)
+const MU = G*M
+const R_EARTH = 6371000
+const EARTH_RADIUS_PIXELS = 240
+const SCALE = R_EARTH/EARTH_RADIUS_PIXELS
+const CROSS_AREA = 10.5
+
+
+var dry_mass
+var fuel_mass
+var thrust
+var isp
+var target_apoapsis_altitude = 200000
+
+
+var flight_path := Line2D.new()
+var center_pos = null
+var path_start = null
 
 var power_data = {
 	PowerType.SMALLSOLAR: {
@@ -139,4 +159,10 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
+	pass
+
+func gen_path():
+	pass
+
+func get_data_coll_time():
 	pass

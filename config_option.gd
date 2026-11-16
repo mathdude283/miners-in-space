@@ -30,7 +30,7 @@ signal option_selected(option_id: int)
 
 @export var option_id: int
 
-@onready var text_rect: TextureRect = $TextureRect
+@onready var text_rect: TextureRect = $PanelContainer/TextureRect
 @onready var description: RichTextLabel = $RichTextLabel
 @onready var button: Button = $Button
 
